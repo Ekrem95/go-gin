@@ -15,7 +15,7 @@ const config = {
   entry: APP_DIR + '/app.js',
   output: {
     path: BUILT_DIR,
-    filename: '[name].js',
+    filename: 'app.js',
   },
   devtool: production ? '' : 'inline-sourcemap',
   module: {

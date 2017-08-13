@@ -2,12 +2,14 @@ import React, { Component } from 'react';
 import { render } from 'react-dom';
 
 // import Home from './Components/Home';
-import { Home } from './Components';
+import { Signup } from './Components';
+
+import style from './style.scss';
 
 class App extends Component {
   render() {
     return (
-      <Home />
+      <Signup />
     );
   }
 }

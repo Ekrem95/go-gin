@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"github.com/garyburd/redigo/redis"
+	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
-	"strconv"
 )
 
 func router() {
@@ -31,17 +31,19 @@ func router() {
 	fmt.Println(world)
 
 	router := gin.Default()
+	store, _ := sessions.NewRedisStore(10, "tcp", "localhost:6379", "", []byte("secret"))
+	router.Use(sessions.Sessions("session", store))
 	router.LoadHTMLGlob("../templates/*")
 	router.Static("/src", "../src")
 
 	router.GET("/r/:r", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.tmpl", gin.H{
+		c.HTML(http.StatusOK, "index.html", gin.H{
 			"title": "Main website",
 		})
 	})
 
 	router.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.tmpl", gin.H{
+		c.HTML(http.StatusOK, "index.html", gin.H{
 			"title": "Main website",
 		})
 	})
@@ -53,22 +55,31 @@ func router() {
 	})
 
 	router.POST("/form_post", func(c *gin.Context) {
-		name := c.PostForm("name")
-		age, _ := strconv.Atoi(c.PostForm("age"))
-
-		user1 := User{name, age}
-
-		err = bcrypt.CompareHashAndPassword([]byte(world), []byte(name))
-
-		if err == nil {
-			fmt.Println("chelsea")
+		session := sessions.Default(c)
+		var count int
+		v := session.Get("count")
+		if v == nil {
+			count = 0
 		} else {
-			fmt.Println("City")
+			count = v.(int)
+			count++
+		}
+		session.Set("count", count)
+		session.Save()
+
+		name := c.PostForm("name")
+		password, err := bcrypt.GenerateFromPassword([]byte(c.PostForm("password")), bcrypt.DefaultCost)
+		if err != nil {
+			panic(err)
 		}
 
+		newUser := User{name, string(password)}
+		fmt.Println(newUser)
+
 		c.JSON(200, gin.H{
-			"user": user1,
-			"err":  err,
+			"user":  newUser,
+			"err":   err,
+			"count": count,
 		})
 	})
 

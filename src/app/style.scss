@@ -1,0 +1,13 @@
+.form {
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 60px;
+
+  *{
+    max-width: 400px;
+    margin: 10px;
+    width: 60vw;
+  }
+}
