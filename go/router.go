@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/garyburd/redigo/redis"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -10,25 +9,7 @@ import (
 )
 
 func router() {
-	c, err := redis.Dial("tcp", ":6379")
-	if err != nil {
-		panic(err)
-	}
-
-	defer c.Close()
-
-	// hashedMessage, err := bcrypt.GenerateFromPassword([]byte("eko"), bcrypt.DefaultCost)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// c.Do("SET", "message1", hashedMessage)
-
-	world, err := redis.String(c.Do("GET", "message1"))
-	if err != nil {
-		fmt.Println("key not found")
-	}
-
-	fmt.Println(world)
+	Redis()
 
 	router := gin.Default()
 	store, _ := sessions.NewRedisStore(10, "tcp", "localhost:6379", "", []byte("secret"))
@@ -75,6 +56,7 @@ func router() {
 
 		newUser := User{name, string(password)}
 		fmt.Println(newUser)
+		// encoded, _ := json.Marshal(newUser)
 
 		c.JSON(200, gin.H{
 			"user":  newUser,
