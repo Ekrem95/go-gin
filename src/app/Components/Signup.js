@@ -4,7 +4,7 @@ import request from 'superagent';
 export default class Form extends Component {
   constructor() {
     super();
-    this.state = { name: null, password: null };
+    this.state = { name: '', password: '' };
   }
 
   render() {
@@ -29,18 +29,25 @@ export default class Form extends Component {
       <button
         type="button"
         onClick={() => {
-          const payload = { name: this.state.name, password: this.state.password };
+          if (
+            this.state.name.length > 2 &&
+            this.state.password.length > 5
+          ) {
+            const payload = {
+              username: this.state.name, password: this.state.password,
+            };
 
-          request
-            .post('/form_post')
-            .type('form')
-            .send(payload)
-            .set('Accept', 'application/json')
-            .then(res => {
-              console.log(res.body);
-            });
+            request
+              .post('/signup')
+              .type('form')
+              .send(payload)
+              .set('Accept', 'application/json')
+              .then(res => {
+                console.log(res.body);
+              });
+          }
         }}
-        >Send</button>
+        >Sign up</button>
       </div>
     );
   }
