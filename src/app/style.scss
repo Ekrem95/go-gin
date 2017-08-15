@@ -22,7 +22,7 @@ body {
       span {
         cursor: pointer;
       }
-      
+
       .activeRoute{
         color: rgb(237, 56, 153);
       }
@@ -43,6 +43,8 @@ body {
       height: 26px;
       font-size: 1.1rem;
     }
+
+    p{ margin: 0; }
 
     button {
       background: rgb(26, 108, 204);

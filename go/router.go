@@ -82,7 +82,7 @@ func router() {
 			return
 		default:
 			c.JSON(200, gin.H{
-				"error": "Username already exist.",
+				"error": "Username already exists.",
 			})
 		}
 	})

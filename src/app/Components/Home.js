@@ -1,13 +1,14 @@
 import React, { Component } from 'react';
-// import request from 'superagent';
-import { store } from '../redux/reducers';
+import { auth } from '../redux/reducers';
 
 export default class Home extends Component {
   componentWillMount() {
-    console.log(store.getState());
-    if (store.getState() === 0) {
-      window.location.href = '/login';
-    }
+    auth()
+    .then(res => {
+      if (res === 0) {
+        window.location.href = '/login';
+      }
+    });
   }
 
   render() {
