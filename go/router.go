@@ -2,7 +2,7 @@ package main
 
 import (
 	"database/sql"
-	_ "fmt"
+	"fmt"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -36,6 +36,7 @@ func router() {
 	router.GET("/user", func(c *gin.Context) {
 		session := sessions.Default(c)
 		user := session.Get("user")
+		fmt.Println(user)
 		c.JSON(http.StatusOK, gin.H{
 			"user": user,
 		})
@@ -43,9 +44,9 @@ func router() {
 
 	router.POST("/signup", func(c *gin.Context) {
 		username := c.PostForm("username")
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(c.PostForm("password")), bcrypt.DefaultCost)
-		if err != nil {
-			panic(err)
+		hashedPassword, error := bcrypt.GenerateFromPassword([]byte(c.PostForm("password")), bcrypt.DefaultCost)
+		if error != nil {
+			panic(error)
 		}
 
 		var user string
@@ -122,6 +123,17 @@ func router() {
 		c.JSON(200, gin.H{
 			"message": "hello " + databaseUsername,
 			"user":    user,
+		})
+	})
+	router.POST("/logout", func(c *gin.Context) {
+		session := sessions.Default(c)
+		session.Set("user", nil)
+		user := session.Get("user")
+		session.Save()
+
+		c.JSON(200, gin.H{
+			"logged Out": true,
+			"user":       user,
 		})
 	})
 

@@ -1,20 +1,54 @@
-.form {
-  display: flex;
-  flex-flow: column;
-  justify-content: center;
-  align-items: center;
-  margin-top: 60px;
+body {
+  background: #000;
+  color: #fff;
+  margin: 0;
+  font-size: 16px;
 
-  * {
-    max-width: 400px;
-    margin: 10px;
-    width: 60vw;
+  .nav {
+    div {
+      height: 36px;
+      background: rgb(27, 105, 198);
+      display: flex;
+      flex-flow: row;
+      justify-content: flex-start;
+      align-items: center;
+
+      * {
+        margin: 0 10px;
+        text-decoration: none;
+        color: #fff;
+      }
+
+      span {
+        cursor: pointer;
+      }
+      
+      .activeRoute{
+        color: rgb(237, 56, 153);
+      }
+    }
   }
-}
 
-.nav {
-  margin: 20px;
-  * {
+  .form {
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: 60px;
+
+    input, button {
+      max-width: 300px;
       margin: 10px;
+      width: 60vw;
+      height: 26px;
+      font-size: 1.1rem;
+    }
+
+    button {
+      background: rgb(26, 108, 204);
+      color: #fff;
+      border-radius: 3px;
+      border: none;
+    }
   }
 }
