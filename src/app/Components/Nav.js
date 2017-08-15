@@ -10,9 +10,16 @@ export default class Nav extends Component {
   }
 
   componentWillMount() {
-    console.log('store');
+    request
+      .get('/user')
+      .then(res => {
+        if (res.body.user === null) {
+          store.dispatch({ type: 'UNAUTH' });
+        } else {
+          store.dispatch({ type: 'AUTH' });
+        }
+      });
     store.subscribe(() => {
-      console.log(store.getState());
       const state = store.getState();
       switch (state) {
         case 1:
@@ -22,7 +29,6 @@ export default class Nav extends Component {
           this.setState({ loggedIn: false });
       }
     });
-    store.dispatch({ type: 'AUTH' });
   }
 
   render() {
@@ -36,7 +42,8 @@ export default class Nav extends Component {
               request
                 .post('/logout')
                 .then(res => {
-                  console.log(res.body);
+                  store.dispatch({ type: 'UNAUTH' });
+                  window.location.href = '/login';
                 });
             }}
             >Logout

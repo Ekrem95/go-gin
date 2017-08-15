@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import request from 'superagent';
+import { store } from '../redux/reducers';
 
 export default class Form extends Component {
   constructor() {
@@ -43,7 +44,10 @@ export default class Form extends Component {
                 .send(payload)
                 .set('Accept', 'application/json')
                 .then(res => {
-                  console.log(res.body);
+                  if (res.body.user) {
+                    store.dispatch({ type: 'AUTH' });
+                    this.props.history.push('/');
+                  }
                 });
             }
           }}

@@ -2,12 +2,18 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
+	_ "fmt"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
+
+func common(c *gin.Context) {
+	c.HTML(http.StatusOK, "index.html", gin.H{
+		"title": "Main",
+	})
+}
 
 func router() {
 	// Redis()
@@ -18,27 +24,22 @@ func router() {
 	router.LoadHTMLGlob("../templates/*")
 	router.Static("/src", "../src")
 
-	router.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", gin.H{
-			"title": "Main website",
-		})
-	})
-	router.GET("/signup", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", gin.H{
-			"title": "Main website",
-		})
-	})
-	router.GET("/login", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", gin.H{
-			"title": "Main website",
-		})
-	})
+	router.GET("/", common)
+	router.GET("/signup", common)
+	router.GET("/login", common)
+
 	router.GET("/user", func(c *gin.Context) {
 		session := sessions.Default(c)
 		user := session.Get("user")
-		fmt.Println(user)
+		// fmt.Println(user)
 		c.JSON(http.StatusOK, gin.H{
 			"user": user,
+		})
+	})
+	router.GET("/cookie", func(c *gin.Context) {
+		// fmt.Println(user)
+		c.JSON(http.StatusOK, gin.H{
+			"cookie": c.Request.Context(),
 		})
 	})
 

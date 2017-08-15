@@ -10,9 +10,9 @@ import (
 
 // Redis func
 func Redis() {
-	conn, err := redis.Dial("tcp", ":6379")
-	if err != nil {
-		panic(err.Error())
+	conn, error := redis.Dial("tcp", ":6379")
+	if error != nil {
+		panic(error.Error())
 	}
 	defer conn.Close()
 

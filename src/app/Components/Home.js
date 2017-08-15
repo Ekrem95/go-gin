@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
-import request from 'superagent';
+// import request from 'superagent';
+import { store } from '../redux/reducers';
 
 export default class Home extends Component {
   componentWillMount() {
-    request
-      .get('/user')
-      .then(res => {
-        console.log(res.body);
-      });
+    console.log(store.getState());
+    if (store.getState() === 0) {
+      window.location.href = '/login';
+    }
   }
 
   render() {
