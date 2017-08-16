@@ -5,7 +5,7 @@ import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { store } from './redux/reducers';
 
 // import Home from './Components/Home';
-import { Home, Signup, Login, Nav } from './Components';
+import { Home, Signup, Login, Nav, Talkie } from './Components';
 
 import style from './style.scss';
 
@@ -21,6 +21,7 @@ class App extends Component {
             <Route path="/login" component={Login} />
             <Route path="/signup" component={Signup} />
           </Switch>
+          <Talkie />
           </div>
         </BrowserRouter>
       </Provider>
