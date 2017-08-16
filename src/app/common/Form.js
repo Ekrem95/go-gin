@@ -38,9 +38,9 @@ export default class Form extends Component {
                 .send(payload)
                 .set('Accept', 'application/json')
                 .then(res => {
-                  console.log(res.body);
                   if (res.body.user) {
                     store.dispatch({ type: 'AUTH' });
+                    store.dispatch({ type: 'USER', payload: res.body.user });
                     this.props.history.push('/');
                   } else if (res.body.err) {
                     this.setState({

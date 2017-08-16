@@ -17,11 +17,12 @@ export default class Nav extends Component {
           store.dispatch({ type: 'UNAUTH' });
         } else {
           store.dispatch({ type: 'AUTH' });
+          store.dispatch({ type: 'USER', payload: res.body.user });
         }
       });
     store.subscribe(() => {
       const state = store.getState();
-      switch (state) {
+      switch (state.auth.auth) {
         case 1:
           this.setState({ loggedIn: true });
           break;

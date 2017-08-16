@@ -26,7 +26,7 @@ func main() {
 
 		so.Join("chat")
 
-		so.On("msg", func(msg string) {
+		so.On("msg", func(msg *Message) {
 			so.BroadcastTo("chat", "dist", msg)
 		})
 		so.On("disconnection", func() {
