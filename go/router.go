@@ -5,7 +5,9 @@ import (
 	_ "fmt"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/googollee/go-socket.io"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 	"net/http"
 )
 
@@ -24,9 +26,32 @@ func router() {
 	router.LoadHTMLGlob("../templates/*")
 	router.Static("/src", "../src")
 
+	// socketio
+	server, err := socketio.NewServer(nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	server.On("connection", func(so socketio.Socket) {
+		log.Println("on connection")
+
+		so.Emit("some:event", "dataForClient")
+
+		so.On("msg", func(msg string) {
+			log.Println(msg)
+		})
+		so.On("disconnection", func() {
+			log.Println("on disconnect")
+		})
+	})
+	server.On("error", func(so socketio.Socket, err error) {
+		log.Println("error:", err)
+	})
+
 	router.GET("/", common)
 	router.GET("/signup", common)
 	router.GET("/login", common)
+	router.GET("/socket.io/", gin.WrapH(server))
+	router.POST("/socket.io/", gin.WrapH(server))
 
 	router.GET("/user", func(c *gin.Context) {
 		session := sessions.Default(c)
