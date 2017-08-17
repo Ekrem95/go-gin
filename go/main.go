@@ -8,13 +8,13 @@ import (
 )
 
 func main() {
-	// Redis()
 	MySQL()
 	router := gin.Default()
 	store, _ := sessions.NewRedisStore(10, "tcp", "localhost:6379", "", []byte("secret"))
 	router.Use(sessions.Sessions("session", store))
 	router.LoadHTMLGlob("../templates/*")
 	router.Static("/src", "../src")
+	router.StaticFile("/favicon.ico", "../templates/favicon.ico")
 
 	// socketio
 	server, socketErr := socketio.NewServer(nil)
@@ -28,6 +28,7 @@ func main() {
 
 		so.On("msg", func(msg *Message) {
 			so.BroadcastTo("chat", "dist", msg)
+			RedisSaveMsg(msg)
 		})
 		so.On("disconnection", func() {
 			log.Println("on disconnect")
@@ -41,6 +42,8 @@ func main() {
 	router.GET("/signup", common)
 	router.GET("/login", common)
 	router.GET("/user", getUser)
+
+	router.GET("/messages", RedisGetMsgs)
 
 	router.POST("/signup", signupPOST)
 	router.POST("/login", loginPOST)

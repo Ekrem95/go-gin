@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import io from 'socket.io-client';
 import { store } from '../redux/reducers';
 import $ from 'jquery';
+import request from 'superagent';
 
 export default class Talkie extends Component {
   constructor() {
@@ -25,6 +26,16 @@ export default class Talkie extends Component {
     }
 
     this.jquery();
+
+    request.get('/messages')
+      .then(res => {
+        let messages = [];
+        res.body.messages.map(m => {
+          m = JSON.parse(m);
+          messages.push(m);
+        });
+        this.setState({ messages });
+      });
   }
 
   jquery() {
@@ -64,11 +75,11 @@ export default class Talkie extends Component {
         <div className="bottom">
           {
             this.state.messages &&
-            this.state.messages.map(m => {
+            this.state.messages.map((m, i) => {
               const first = new Date(Number(m.Time)).toString().slice(4, 10);
               const second = new Date(Number(m.Time)).toString().slice(16, 21);
               const message = (
-                <div className="message" key={m.Time}>
+                <div className="message" key={i}>
                   <div className="text">{m.Text}</div>
                   <div className="details">
                     <div>{`${first}, ${second}`}</div>
