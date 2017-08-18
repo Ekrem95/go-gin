@@ -15,10 +15,9 @@ type Message struct {
 
 // Post type
 type Post struct {
-	id          int
-	title       string
-	src         string
-	description string
-	// comments    []string
-	likes int
+	ID          int    `json:"id"`
+	Title       string `json:"title"`
+	Src         string `json:"src"`
+	Description string `json:"description"`
+	Likes       int    `json:"likes"`
 }

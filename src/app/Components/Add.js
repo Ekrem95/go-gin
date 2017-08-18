@@ -19,9 +19,11 @@ export default class Add extends Component {
       .type('form')
       .send(pac)
       .set('Accept', 'application/json')
-      .end(function (err, res) {
-      // Calling the end function will send the request
-    });
+      .then(res => {
+        if (res.body.done === true) {
+          this.props.history.push('/');
+        }
+      });
 
   }
 
@@ -30,9 +32,9 @@ export default class Add extends Component {
       <div className="add">
         <h1>Add</h1>
         <form>
-          <input ref="title" type="text"/>
-          <input ref="desc" type="text"/>
-          <input ref="src" type="text"/>
+          <input ref="title" type="text" placeholder="Title"/>
+          <input ref="desc" type="text" placeholder="Description"/>
+          <input ref="src" type="text" placeholder="Image Source"/>
           <button
             onClick={() => {
               this.add();

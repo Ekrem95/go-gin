@@ -123,33 +123,39 @@ func logout(c *gin.Context) {
 func addPost(c *gin.Context) {
 	var post Post
 	// post := Article{"a","b","c", [], 6}
-	post.title = c.PostForm("title")
-	post.description = c.PostForm("desc")
-	post.src = c.PostForm("src")
+	post.Title = c.PostForm("title")
+	post.Description = c.PostForm("desc")
+	post.Src = c.PostForm("src")
 	log.Println(post)
+
+	_, err = db.Exec("INSERT INTO posts(title, description, src) VALUES(?, ?, ?)", post.Title, post.Description, post.Src)
+	if err != nil {
+		log.Fatal(err)
+		c.JSON(500, gin.H{
+			"error": "Unable to add.",
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"done": true,
+	})
 }
 
 func getPosts(c *gin.Context) {
 	var posts []Post
 	var post Post
-	var id, likes int
-	var title, description string
 
-	rows, err := db.Query("select id, title, description, likes from posts")
+	rows, err := db.Query("select id, title, src, description, likes from posts")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		error := rows.Scan(&id, &title, &description, &likes)
+		error := rows.Scan(&post.ID, &post.Title, &post.Src, &post.Description, &post.Likes)
 		if error != nil {
 			log.Fatal(error)
 		}
-		post.id = id
-		post.title = title
-		post.description = description
-		post.likes = likes
 
 		posts = append(posts, post)
 	}
@@ -157,7 +163,6 @@ func getPosts(c *gin.Context) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(posts)
 
 	c.JSON(200, gin.H{
 		"posts": posts,

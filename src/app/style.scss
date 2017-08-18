@@ -1,10 +1,39 @@
 $border: solid #fff 1px;
 
+@mixin center-items {
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  align-items: center;
+}
+
 body {
   background: #000;
   color: #fff;
   margin: 0;
   font-size: 16px;
+
+  .home {
+    @include center-items;
+
+    .post {
+      @include center-items;
+      margin-bottom: 60px;
+
+      * {
+        width: 400px;
+      }
+
+      p {
+        text-align: justify;
+      }
+
+      img {
+        max-height: 500px;
+        object-fit: cover;
+      }
+    }
+  }
 
   .nav {
     div {
@@ -60,71 +89,75 @@ body {
     position: fixed;
     right: 10px;
     bottom: 10px;
-    display: none;
+    // display: none;
     cursor: pointer;
   }
 
-  .talkie {
-    background: #111;
-    position: fixed;
-    right: 0;
-    bottom: 0;
-    width: 300px;
-    height: 300px;
-    display: flex;
-    flex-flow: column;
+  .talkie-box {
+    display: none;
 
-    .top {
-      background: #222;
-      width: 100%;
-      height: 30px;
+    .talkie {
+      background: #111;
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      width: 300px;
+      height: 300px;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0;
+      flex-flow: column;
 
-      *{ margin: 0 6px; }
-      span {cursor: pointer;}
-    }
-
-    .bottom{
-      height: 240px;
-      overflow-y: scroll;
-
-      &::-webkit-scrollbar {
-        width: 6px;
-        background-color: #000;
-      }
-      &::-webkit-scrollbar-track {
-      	-webkit-box-shadow: inset 0 0 3px rgba(0,0,0,0.3);
-      	border-radius: 6px;
-      	background-color: #000;
-      }
-      &::-webkit-scrollbar-thumb {
-        border-radius: 6px;
-	      -webkit-box-shadow: inset 0 0 3px rgba(0,0,0,.3);
-	       background-color: #2990d2;
-      }
-
-      .message {
+      .top {
+        background: #222;
+        width: 100%;
+        height: 30px;
         display: flex;
-        flex-flow: row;
+        align-items: center;
         justify-content: space-between;
-        margin: 5px 10px;
+        padding: 0;
 
-        *{
-          margin-bottom: 5px;
-        }
-        .text {
-          max-width: 50%;
-          word-wrap: break-word;
-        }
-
+        *{ margin: 0 6px; }
+        span {cursor: pointer;}
       }
-    }
 
-    input {
-      height: 26px;
+      .bottom{
+        height: 240px;
+        overflow-y: scroll;
+
+        &::-webkit-scrollbar {
+          width: 6px;
+          background-color: #000;
+        }
+        &::-webkit-scrollbar-track {
+        	-webkit-box-shadow: inset 0 0 3px rgba(0,0,0,0.3);
+        	border-radius: 6px;
+        	background-color: #000;
+        }
+        &::-webkit-scrollbar-thumb {
+          border-radius: 6px;
+  	      -webkit-box-shadow: inset 0 0 3px rgba(0,0,0,.3);
+  	       background-color: #2990d2;
+        }
+
+        .message {
+          display: flex;
+          flex-flow: row;
+          justify-content: space-between;
+          margin: 5px 10px;
+
+          *{
+            margin-bottom: 5px;
+          }
+          .text {
+            max-width: 50%;
+            word-wrap: break-word;
+          }
+
+        }
+      }
+
+      input {
+        height: 26px;
+      }
     }
   }
 

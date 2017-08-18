@@ -40,15 +40,14 @@ export default class Talkie extends Component {
 
   jquery() {
     $(document).ready(function () {
-        $('.bottom').animate({ scrollTop: $('.bottom').prop('scrollHeight') }, 1000);
-
         $('#hide-chat').on('click', () => {
-            $('.talkie').fadeToggle();
+            $('.talkie-box').fadeToggle();
             $('#show-chat').fadeToggle();
           });
         $('#show-chat').on('click', () => {
-            $('.talkie').fadeToggle();
+            $('.talkie-box').fadeToggle();
             $('#show-chat').fadeToggle();
+            $('.bottom').animate({ scrollTop: $('.bottom').prop('scrollHeight') }, 1000);
           });
       });
   }
@@ -71,6 +70,7 @@ export default class Talkie extends Component {
   render() {
     return (
       <div>
+      <div className="talkie-box">
       <div className="talkie">
         <div className="top">
           <div>Messages</div>
@@ -112,6 +112,7 @@ export default class Talkie extends Component {
           }}
 
           />
+      </div>
       </div>
       <div id="show-chat">Chat</div>
       </div>
