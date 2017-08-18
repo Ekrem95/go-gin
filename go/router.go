@@ -2,10 +2,10 @@ package main
 
 import (
 	"database/sql"
-	_ "fmt"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 	"net/http"
 )
 
@@ -120,48 +120,46 @@ func logout(c *gin.Context) {
 	})
 }
 
-func router() {
-	// // Redis()
-	// MySQL()
-	// router := gin.Default()
-	// store, _ := sessions.NewRedisStore(10, "tcp", "localhost:6379", "", []byte("secret"))
-	// router.Use(sessions.Sessions("session", store))
-	// router.LoadHTMLGlob("../templates/*")
-	// router.Static("/src", "../src")
-	//
-	// // socketio
-	// server, err := socketio.NewServer(nil)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// server.On("connection", func(so socketio.Socket) {
-	// 	log.Println("on connection")
-	//
-	// 	so.Emit("some:event", "dataForClient")
-	//
-	// 	so.On("msg", func(msg string) {
-	// 		log.Println(msg)
-	// 	})
-	// 	so.On("disconnection", func() {
-	// 		log.Println("on disconnect")
-	// 	})
-	// })
-	// server.On("error", func(so socketio.Socket, err error) {
-	// 	log.Println("error:", err)
-	// })
-	//
-	// router.GET("/", common)
-	// router.GET("/signup", common)
-	// router.GET("/login", common)
-	// router.GET("/socket.io/", gin.WrapH(server))
-	// router.POST("/socket.io/", gin.WrapH(server))
-	//
-	// router.GET("/user", getUser)
-	//
-	// router.POST("/signup", signupPOST)
-	//
-	// router.POST("/login", loginPOST)
-	// router.POST("/logout", logout)
-	//
-	// router.Run(":8080")
+func addPost(c *gin.Context) {
+	var post Post
+	// post := Article{"a","b","c", [], 6}
+	post.title = c.PostForm("title")
+	post.description = c.PostForm("desc")
+	post.src = c.PostForm("src")
+	log.Println(post)
+}
+
+func getPosts(c *gin.Context) {
+	var posts []Post
+	var post Post
+	var id, likes int
+	var title, description string
+
+	rows, err := db.Query("select id, title, description, likes from posts")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		error := rows.Scan(&id, &title, &description, &likes)
+		if error != nil {
+			log.Fatal(error)
+		}
+		post.id = id
+		post.title = title
+		post.description = description
+		post.likes = likes
+
+		posts = append(posts, post)
+	}
+	err = rows.Err()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println(posts)
+
+	c.JSON(200, gin.H{
+		"posts": posts,
+	})
 }

@@ -38,6 +38,7 @@ export default class Nav extends Component {
         {this.state.loggedIn ?
           <div>
           <NavLink to="/">Home</NavLink>
+          <NavLink to="/add">Add</NavLink>
           <span
             onClick={() => {
               request

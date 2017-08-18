@@ -30,25 +30,27 @@ export default class Talkie extends Component {
     request.get('/messages')
       .then(res => {
         let messages = [];
-        res.body.messages.map(m => {
-          m = JSON.parse(m);
-          messages.push(m);
-        });
+        for (let i = res.body.messages.length - 1; i >= 0; i--) {
+          messages.push(JSON.parse(res.body.messages[i]));
+        }
+
         this.setState({ messages });
       });
   }
 
   jquery() {
     $(document).ready(function () {
-      $('#hide-chat').on('click', () => {
-          $('.talkie').fadeToggle();
-          $('#show-chat').fadeToggle();
-        });
-      $('#show-chat').on('click', () => {
-          $('.talkie').fadeToggle();
-          $('#show-chat').fadeToggle();
-        });
-    });
+        $('.bottom').animate({ scrollTop: $('.bottom').prop('scrollHeight') }, 1000);
+
+        $('#hide-chat').on('click', () => {
+            $('.talkie').fadeToggle();
+            $('#show-chat').fadeToggle();
+          });
+        $('#show-chat').on('click', () => {
+            $('.talkie').fadeToggle();
+            $('#show-chat').fadeToggle();
+          });
+      });
   }
 
   sendMessage() {
@@ -62,6 +64,8 @@ export default class Talkie extends Component {
         sender: username,
       });
     }
+
+    $('.bottom').animate({ scrollTop: $('.bottom').prop('scrollHeight') }, 1000);
   }
 
   render() {

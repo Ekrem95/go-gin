@@ -1,14 +1,20 @@
 import React, { Component } from 'react';
 import { auth } from '../redux/reducers';
+import request from 'superagent';
 
 export default class Home extends Component {
   componentWillMount() {
     auth()
     .then(res => {
-      if (res === 0) {
-        window.location.href = '/login';
+      if (res.auth.auth === 0) {
+        this.props.history.push('/login');
       }
     });
+
+    request.get('/api/posts')
+      .then(res => {
+        console.log(res.body);
+      });
   }
 
   render() {

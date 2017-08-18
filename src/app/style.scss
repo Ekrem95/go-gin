@@ -127,4 +127,34 @@ body {
       height: 26px;
     }
   }
+
+  .add {
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+    align-items: center;
+
+    form {
+      display: flex;
+      flex-flow: column;
+      justify-content: center;
+
+      *{
+        margin: 6px;
+        width: 40vw;
+        height: 26px;
+        border-radius: 3px;
+      }
+
+      button {
+        border: none;
+        background: rgb(37, 80, 76);
+        color: #fff;
+
+        &:hover {
+          background: rgb(22, 88, 82);
+        }
+      }
+    }
+  }
 }

@@ -41,13 +41,15 @@ func main() {
 	router.GET("/", common)
 	router.GET("/signup", common)
 	router.GET("/login", common)
+	router.GET("/add", common)
 	router.GET("/user", getUser)
-
 	router.GET("/messages", RedisGetMsgs)
+	router.GET("/api/posts", getPosts)
 
 	router.POST("/signup", signupPOST)
 	router.POST("/login", loginPOST)
 	router.POST("/logout", logout)
+	router.POST("/add", addPost)
 
 	// socketio
 	router.GET("/socket.io/", gin.WrapH(server))

@@ -69,7 +69,8 @@ func RedisSaveMsg(msg *Message) {
 	//
 	encoded, _ := json.Marshal(message1)
 	//
-	conn.Do("RPUSH", "messagestest", encoded)
+	conn.Do("LPUSH", "messagestest", encoded)
+	conn.Do("LTRIM", "messagestest", 0, 99)
 	//conn.Do("LPOP", "messagestest")
 
 	// var message *Message

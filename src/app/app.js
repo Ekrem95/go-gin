@@ -5,7 +5,7 @@ import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { store } from './redux/reducers';
 
 // import Home from './Components/Home';
-import { Home, Signup, Login, Nav, Talkie } from './Components';
+import { Home, Signup, Login, Nav, Talkie, Add } from './Components';
 
 import style from './style.scss';
 
@@ -20,6 +20,7 @@ class App extends Component {
             <Route exact path="/" component={Home} />
             <Route path="/login" component={Login} />
             <Route path="/signup" component={Signup} />
+            <Route path="/add" component={Add} />
           </Switch>
           <Talkie />
           </div>
