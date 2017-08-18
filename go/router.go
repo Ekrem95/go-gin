@@ -126,7 +126,6 @@ func addPost(c *gin.Context) {
 	post.Title = c.PostForm("title")
 	post.Description = c.PostForm("desc")
 	post.Src = c.PostForm("src")
-	log.Println(post)
 
 	_, err = db.Exec("INSERT INTO posts(title, description, src) VALUES(?, ?, ?)", post.Title, post.Description, post.Src)
 	if err != nil {

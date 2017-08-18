@@ -14,23 +14,50 @@ body {
   font-size: 16px;
 
   .home {
-    @include center-items;
+    display: flex;
+    flex-flow: row;
+    flex-wrap: wrap;
 
     .post {
       @include center-items;
-      margin-bottom: 60px;
+      margin: 12px;
 
-      * {
-        width: 400px;
+
+      // * {
+      //   width: 400px;
+      // }
+
+      // p {
+      //   text-align: justify;
+      // }
+
+      img {
+        width: 200px;
+        height: 200px;
+        object-fit: cover;
+      }
+    }
+
+    #popup {
+      background: rgba(10, 20, 40, 0.9);
+      width: 260px;
+      height: 180px;
+      border-radius: 6px;
+      display: none;
+
+      *{
+        margin: 6px;
+      }
+
+      span {
+        display: inline-block;
+        height: 1em;
+        overflow: hidden;
       }
 
       p {
-        text-align: justify;
-      }
-
-      img {
-        max-height: 500px;
-        object-fit: cover;
+        height: 8em;
+        overflow: hidden;
       }
     }
   }
