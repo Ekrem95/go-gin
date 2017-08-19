@@ -45,11 +45,14 @@ func main() {
 	router.GET("/user", getUser)
 	router.GET("/messages", RedisGetMsgs)
 	router.GET("/api/posts", getPosts)
+	router.GET("/api/postbyid/:id", getPostByID)
+	router.GET("/p/*all", common)
 
 	router.POST("/signup", signupPOST)
 	router.POST("/login", loginPOST)
 	router.POST("/logout", logout)
 	router.POST("/add", addPost)
+	router.POST("/comment", postComment)
 
 	// socketio
 	router.GET("/socket.io/", gin.WrapH(server))

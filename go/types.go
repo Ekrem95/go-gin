@@ -21,3 +21,11 @@ type Post struct {
 	Description string `json:"description"`
 	Likes       int    `json:"likes"`
 }
+
+// Comment type
+type Comment struct {
+	Text   string `json:"text"`
+	PostID string `json:"postId"`
+	Time   int64  `json:"time"`
+	Sender string `json:"sender"`
+}

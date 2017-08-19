@@ -7,6 +7,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
+	"time"
 )
 
 func common(c *gin.Context) {
@@ -144,9 +145,9 @@ func getPosts(c *gin.Context) {
 	var posts []Post
 	var post Post
 
-	rows, err := db.Query("select id, title, src, description, likes from posts")
-	if err != nil {
-		log.Fatal(err)
+	rows, errror := db.Query("select id, title, src, description, likes from posts")
+	if errror != nil {
+		log.Fatal(errror)
 	}
 	defer rows.Close()
 
@@ -165,5 +166,42 @@ func getPosts(c *gin.Context) {
 
 	c.JSON(200, gin.H{
 		"posts": posts,
+	})
+}
+
+func getPostByID(c *gin.Context) {
+	id := c.Param("id")
+	var post Post
+	error := db.QueryRow("select id, title, src, description, likes from posts where id =?", id).Scan(&post.ID, &post.Title, &post.Src, &post.Description, &post.Likes)
+	if error != nil {
+		log.Fatal(error)
+		c.JSON(200, gin.H{
+			"post": nil,
+		})
+	}
+
+	c.JSON(200, gin.H{
+		"post": post,
+	})
+}
+
+func postComment(c *gin.Context) {
+	var comment Comment
+
+	comment.Sender = c.PostForm("from")
+	comment.PostID = c.PostForm("postId")
+	comment.Text = c.PostForm("text")
+	comment.Time = time.Now().Unix()
+
+	_, err = db.Exec("INSERT INTO comments(text, sender, postId, time) VALUES(?, ?, ?, ?)", comment.Text, comment.Sender, comment.PostID, comment.Time)
+	if err != nil {
+		log.Fatal(err)
+		c.JSON(500, gin.H{
+			"error": "Unable to add comment.",
+		})
+		return
+	}
+	c.JSON(200, gin.H{
+		"done": true,
 	})
 }

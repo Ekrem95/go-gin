@@ -67,9 +67,12 @@ export default class Home extends Component {
           this.state.posts.map(p => {
             const post = (
               <div className="post" key={p.id} id={p.id}>
-              {/* <h3>{p.title}</h3> */}
-              {/* <p>{p.description}</p> */}
-              <img src={p.src}/>
+              <img
+                onClick={() => {
+                  this.props.history.push(`/p/${p.id}`);
+                }}
+
+                src={p.src}/>
               </div>
             );
             return post;

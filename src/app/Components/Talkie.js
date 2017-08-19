@@ -39,7 +39,7 @@ export default class Talkie extends Component {
   }
 
   jquery() {
-    $(document).ready(function () {
+    $(document).ready(() => {
         $('#hide-chat').on('click', () => {
             $('.talkie-box').fadeToggle();
             $('#show-chat').fadeToggle();

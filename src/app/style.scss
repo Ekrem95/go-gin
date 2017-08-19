@@ -217,4 +217,26 @@ body {
       }
     }
   }
+
+  .details {
+    @include center-items;
+
+    div {
+      margin-bottom: 30px;
+      *{
+        max-width: 500px;
+        width: 90vw;
+      }
+
+      p{
+        text-align: justify;
+      }
+
+      textarea {
+        resize: none;
+        height: 4em;
+        border-radius: 6px;
+      }
+    }
+  }
 }
