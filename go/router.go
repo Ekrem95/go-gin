@@ -145,9 +145,9 @@ func getPosts(c *gin.Context) {
 	var posts []Post
 	var post Post
 
-	rows, errror := db.Query("select id, title, src, description, likes from posts")
-	if errror != nil {
-		log.Fatal(errror)
+	rows, error := db.Query("select id, title, src, description, likes from posts")
+	if error != nil {
+		log.Fatal(error)
 	}
 	defer rows.Close()
 
@@ -188,7 +188,7 @@ func getPostByID(c *gin.Context) {
 func postComment(c *gin.Context) {
 	var comment Comment
 
-	comment.Sender = c.PostForm("from")
+	comment.Sender = c.PostForm("sender")
 	comment.PostID = c.PostForm("postId")
 	comment.Text = c.PostForm("text")
 	comment.Time = time.Now().Unix()
@@ -203,5 +203,34 @@ func postComment(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{
 		"done": true,
+	})
+}
+
+func getCommentsByID(c *gin.Context) {
+	var comments []Comment
+	var comment Comment
+	id := c.Param("id")
+
+	rows, error := db.Query("select text, sender, postId, time from comments where postId=?", id)
+	if error != nil {
+		log.Fatal(error)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		error := rows.Scan(&comment.Text, &comment.Sender, &comment.PostID, &comment.Time)
+		if error != nil {
+			log.Fatal(error)
+		}
+
+		comments = append(comments, comment)
+	}
+	err = rows.Err()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	c.JSON(200, gin.H{
+		"comments": comments,
 	})
 }

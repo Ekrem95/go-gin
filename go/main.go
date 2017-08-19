@@ -46,6 +46,7 @@ func main() {
 	router.GET("/messages", RedisGetMsgs)
 	router.GET("/api/posts", getPosts)
 	router.GET("/api/postbyid/:id", getPostByID)
+	router.GET("/api/commentsbyid/:id", getCommentsByID)
 	router.GET("/p/*all", common)
 
 	router.POST("/signup", signupPOST)

@@ -238,5 +238,28 @@ body {
         border-radius: 6px;
       }
     }
+
+    .comment {
+      // border: $border;
+      max-width: 500px;
+      width: 90vw;
+      display: flex;
+      flex-flow: column;
+      background: #111;
+      border-radius: 6px;
+
+      span:nth-child(1) {
+        width: 90%;
+        margin: 5px 5%;
+      }
+
+      span:nth-child(2) {
+        display: flex;
+        flex-flow: row;
+        justify-content: space-around;
+      }
+
+      * { margin: 6px 0; }
+    }
   }
 }
