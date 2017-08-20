@@ -1,10 +1,11 @@
 package main
 
 import (
+	"log"
+
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/googollee/go-socket.io"
-	"log"
 )
 
 func main() {

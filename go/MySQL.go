@@ -2,8 +2,11 @@ package main
 
 import (
 	"database/sql"
+	"log"
+	"os"
+
 	_ "github.com/go-sql-driver/mysql"
-	_ "golang.org/x/crypto/bcrypt"
+	"github.com/joho/godotenv"
 )
 
 var db *sql.DB
@@ -11,7 +14,14 @@ var err error
 
 // MySQL func
 func MySQL() {
-	db, err = sql.Open("mysql", "database:123456@/golang")
+	envErr := godotenv.Load()
+	if envErr != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	database := os.Getenv("mysql")
+
+	db, err = sql.Open("mysql", database)
 	if err != nil {
 		panic(err.Error())
 	}
