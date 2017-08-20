@@ -43,6 +43,7 @@ func main() {
 	router.GET("/signup", common)
 	router.GET("/login", common)
 	router.GET("/add", common)
+	router.GET("/upload", common)
 	router.GET("/user", getUser)
 	router.GET("/messages", RedisGetMsgs)
 	router.GET("/api/posts", getPosts)
@@ -55,6 +56,7 @@ func main() {
 	router.POST("/logout", logout)
 	router.POST("/add", addPost)
 	router.POST("/comment", postComment)
+	router.POST("/upload", uploadFile)
 
 	// socketio
 	router.GET("/socket.io/", gin.WrapH(server))

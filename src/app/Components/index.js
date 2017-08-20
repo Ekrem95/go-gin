@@ -5,5 +5,8 @@ import Nav from './Nav';
 import Talkie from './Talkie';
 import Add from './Add';
 import Details from './Details';
+import Upload from './Upload';
 
-export { Home, Signup, Login, Nav, Talkie, Add, Details };
+export {
+  Home, Signup, Login, Nav, Talkie, Add, Details, Upload
+};

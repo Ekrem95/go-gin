@@ -2,12 +2,16 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
-	"log"
-	"net/http"
-	"time"
 )
 
 func common(c *gin.Context) {
@@ -233,4 +237,20 @@ func getCommentsByID(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"comments": comments,
 	})
+}
+
+func uploadFile(c *gin.Context) {
+	file, handler, err := c.Request.FormFile("photo")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer file.Close()
+	f, err := os.OpenFile("./photos/"+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer f.Close()
+	io.Copy(f, file)
 }

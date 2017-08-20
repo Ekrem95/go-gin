@@ -39,6 +39,7 @@ export default class Nav extends Component {
           <div>
           <NavLink to="/">Home</NavLink>
           <NavLink to="/add">Add</NavLink>
+          <NavLink to="/upload">Upload</NavLink>
           <span
             onClick={() => {
               request
