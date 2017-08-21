@@ -44,9 +44,15 @@ export default class Home extends Component {
           );
 
           $(document).on('mousemove', function (event) {
-            $('#popup').css({
-              top: event.pageY - 100, left: event.pageX + 30, position: 'absolute',
-            });
+            if (event.pageX + 290 > window.innerWidth) {
+              $('#popup').css({
+                top: event.pageY - 100, left: event.pageX - 300, position: 'absolute',
+              });
+            } else {
+              $('#popup').css({
+                top: event.pageY - 100, left: event.pageX + 30, position: 'absolute',
+              });
+            }
           });
 
           $('#popup').fadeIn();

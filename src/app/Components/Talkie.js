@@ -11,19 +11,11 @@ export default class Talkie extends Component {
     this.state = {
       messages: null,
       val: '',
+      conn: false,
     };
   }
 
   componentWillMount() {
-    let socket = io.connect('/');
-
-    if (socket !== undefined) {
-      socket.on('dist', msg => {
-        const messages = this.state.messages || [];
-        messages.push(msg);
-        this.setState({ messages });
-      });
-    }
 
     this.jquery();
 
@@ -48,8 +40,25 @@ export default class Talkie extends Component {
             $('.talkie-box').fadeToggle();
             $('#show-chat').fadeToggle();
             $('.bottom').animate({ scrollTop: $('.bottom').prop('scrollHeight') }, 1000);
+
+            if (this.state.conn === false) {
+              this.setState({ conn: true });
+              this.getMessages();
+            }
           });
       });
+  }
+
+  getMessages() {
+    let socket = io.connect('/');
+
+    if (socket !== undefined) {
+      socket.on('dist', msg => {
+        const messages = this.state.messages || [];
+        messages.push(msg);
+        this.setState({ messages });
+      });
+    }
   }
 
   sendMessage() {
