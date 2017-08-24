@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import request from 'superagent';
+import { store } from '../redux/reducers';
 
 export default class Add extends Component {
   constructor() {
@@ -11,8 +12,9 @@ export default class Add extends Component {
     const title = this.refs.title.value;
     const desc = this.refs.desc.value;
     const src = this.refs.src.value;
+    const postedBy = store.getState().user.user;
 
-    const pac = { title, desc, src };
+    const pac = { title, desc, src, postedBy };
 
     request
       .post('/add')

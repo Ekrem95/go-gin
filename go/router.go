@@ -131,8 +131,9 @@ func addPost(c *gin.Context) {
 	post.Title = c.PostForm("title")
 	post.Description = c.PostForm("desc")
 	post.Src = c.PostForm("src")
+	post.PostedBy = c.PostForm("postedBy")
 
-	_, err = db.Exec("INSERT INTO posts(title, description, src) VALUES(?, ?, ?)", post.Title, post.Description, post.Src)
+	_, err = db.Exec("INSERT INTO posts(title, description, src, posted_by) VALUES(?, ?, ?, ?)", post.Title, post.Description, post.Src, post.PostedBy)
 	if err != nil {
 		log.Fatal(err)
 		c.JSON(500, gin.H{
@@ -186,6 +187,34 @@ func getPostByID(c *gin.Context) {
 
 	c.JSON(200, gin.H{
 		"post": post,
+	})
+}
+
+func getPostByUsername(c *gin.Context) {
+	name := c.Param("name")
+	var id, title string
+	posts := map[string]string{}
+
+	rows, error := db.Query("select id, title from posts where posted_by=?", name)
+	if error != nil {
+		log.Fatal(error)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		error := rows.Scan(&id, &title)
+		if error != nil {
+			log.Fatal(error)
+		}
+		posts[id] = title
+	}
+	err = rows.Err()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	c.JSON(200, gin.H{
+		"p": posts,
 	})
 }
 
