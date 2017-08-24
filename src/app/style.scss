@@ -262,4 +262,50 @@ body {
       * { margin: 6px 0; }
     }
   }
+
+  .myposts {
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+
+    .post {
+      display: flex;
+      flex-flow: row;
+      align-items: center;
+      justify-content: space-between;
+      background: rgb(36, 41, 48);
+      width: 400px;
+      margin: 10px;
+      border-radius: 6px;
+
+      *{
+        margin: 10px 6px;
+      }
+
+      .title{
+        color: #fff;
+        text-decoration: none;
+      }
+
+      .buttons {
+        display: flex;
+        flex-flow: row;
+
+        *{margin: 0 10px}
+
+        button:first-child {
+          background: green;
+        }
+
+        button {
+          height: 22px;
+          width: 60px;
+          border: none;
+          border-radius: 3px;
+          background: rgb(200, 17, 44);
+          color: #fff;
+        }
+      }
+    }
+  }
 }

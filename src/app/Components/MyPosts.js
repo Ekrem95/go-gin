@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { store } from '../redux/reducers';
 import request from 'superagent';
+import { Link } from 'react-router-dom';
 
 export default class MyPosts extends Component {
   constructor() {
@@ -36,13 +37,35 @@ export default class MyPosts extends Component {
 
   render() {
     return (
-      <div>
+      <div className="myposts">
         <h1>My Posts</h1>
         {this.state.posts &&
           this.state.posts.map(p => {
             const post = (
-              <div key={p.id}>
-                <h4>{p.title}</h4>
+              <div key={p.id} className="post">
+                <Link
+                  className="title"
+                  to={`/p/${p.id}`}>
+                  {p.title}
+                </Link>
+                <div className="buttons">
+                  <button
+                    onClick={() => {
+                      this.props.history.push('/edit/' + p.id);
+                    }}
+
+                    type="button">
+                      Edit
+                  </button>
+                  <button
+                    onClick={() => {
+                      console.log(p.id);
+                    }}
+
+                    type="button">
+                      Delete
+                  </button>
+                </div>
               </div>
             );
             return post;

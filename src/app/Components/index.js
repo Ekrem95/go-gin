@@ -7,7 +7,9 @@ import Add from './Add';
 import Details from './Details';
 import Upload from './Upload';
 import MyPosts from './MyPosts';
+import Edit from './Edit';
 
 export {
-  Home, Signup, Login, Nav, Talkie, Add, Details, Upload, MyPosts
+  Home, Signup, Login, Nav, Talkie, Add,
+  Details, Upload, MyPosts, Edit,
 };

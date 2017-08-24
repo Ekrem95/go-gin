@@ -52,6 +52,7 @@ func main() {
 	r.GET("/p/*all", common)
 	r.GET("/myposts", common)
 	r.GET("/api/getpostbyusername/:name", getPostByUsername)
+	r.GET("/edit/:id", common)
 
 	r.POST("/signup", signupPOST)
 	r.POST("/login", loginPOST)
@@ -59,6 +60,7 @@ func main() {
 	r.POST("/add", addPost)
 	r.POST("/comment", postComment)
 	r.POST("/upload", uploadFile)
+	r.POST("/edit/:id", editPost)
 
 	// socketio
 	r.GET("/socket.io/", gin.WrapH(server))

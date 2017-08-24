@@ -6,7 +6,8 @@ import { store } from './redux/reducers';
 
 // import Home from './Components/Home';
 import {
-   Home, Signup, Login, Nav, Talkie, Add, Details, Upload, MyPosts
+   Home, Signup, Login, Nav, Talkie, Add,
+   Details, Upload, MyPosts, Edit,
  } from './Components';
 
 import style from './style.scss';
@@ -26,6 +27,7 @@ class App extends Component {
             <Route path="/p/:id" component={Details} />
             <Route path="/upload" component={Upload} />
             <Route path="/myposts" component={MyPosts} />
+            <Route path="/edit/:id" component={Edit} />
           </Switch>
           <Talkie />
           </div>

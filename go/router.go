@@ -146,6 +146,26 @@ func addPost(c *gin.Context) {
 	})
 }
 
+func editPost(c *gin.Context) {
+	id := c.Param("id")
+	title := c.PostForm("title")
+	description := c.PostForm("description")
+	src := c.PostForm("src")
+
+	_, err = db.Exec("update posts set title = (?), description = (?), src = (?) where id=?", title, description, src, id)
+	if err != nil {
+		log.Fatal(err)
+		c.JSON(500, gin.H{
+			"error": "Unable to edit.",
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"done": true,
+	})
+}
+
 func getPosts(c *gin.Context) {
 	var posts []Post
 	var post Post
