@@ -61,6 +61,7 @@ func main() {
 	r.POST("/comment", postComment)
 	r.POST("/upload", uploadFile)
 	r.POST("/edit/:id", editPost)
+	r.POST("/delete/:id", deletePostByID)
 
 	// socketio
 	r.GET("/socket.io/", gin.WrapH(server))

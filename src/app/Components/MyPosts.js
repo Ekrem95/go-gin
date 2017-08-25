@@ -2,11 +2,12 @@ import React, { Component } from 'react';
 import { store } from '../redux/reducers';
 import request from 'superagent';
 import { Link } from 'react-router-dom';
+import $ from 'jquery';
 
 export default class MyPosts extends Component {
   constructor() {
     super();
-    this.state = { posts: null };
+    this.state = { posts: null, pac: null };
   }
 
   componentWillMount() {
@@ -59,7 +60,16 @@ export default class MyPosts extends Component {
                   </button>
                   <button
                     onClick={() => {
-                      console.log(p.id);
+                      const id = p.id;
+                      const user = store.getState().user.user;
+
+                      const pac = { id, user };
+                      this.setState({ pac });
+
+                      $('#dlgbox')
+                      .css('display', 'flex')
+                      .hide()
+                      .fadeIn();
                     }}
 
                     type="button">
@@ -71,6 +81,40 @@ export default class MyPosts extends Component {
             return post;
           })
         }
+
+      <div id="dlgbox">
+        <div id="dlg-body">Do you want to delete?</div>
+        <div id="dlg-footer">
+            <button
+              onClick={() => {
+                $('#dlgbox').fadeOut();
+                request
+                  .post('/delete/' + this.props.location.pathname.split('/').pop())
+                  .type('form')
+                  .send(this.state.pac)
+                  .set('Accept', 'application/json')
+                  .then(res => {
+                    if (res.body.deleted === true) {
+                      const posts = this.state.posts.filter(pos => pos.id !== this.state.pac.id);
+                      this.setState({ posts });
+                    } else {
+                      // there was an error
+                      return;
+                    }
+                  })
+                  .catch(e => e);
+              }}>
+              OK
+            </button>
+            <button
+              onClick={() => {
+                this.setState({ pac: null });
+                $('#dlgbox').fadeOut();
+              }}>
+              Cancel
+            </button>
+        </div>
+      </div>
       </div>
     );
   }

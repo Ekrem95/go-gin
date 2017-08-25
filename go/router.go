@@ -289,17 +289,44 @@ func getCommentsByID(c *gin.Context) {
 }
 
 func uploadFile(c *gin.Context) {
-	file, handler, err := c.Request.FormFile("photo")
-	if err != nil {
-		fmt.Println(err)
+	file, handler, errFile := c.Request.FormFile("photo")
+	if errFile != nil {
+		fmt.Println(errFile)
 		return
 	}
 	defer file.Close()
-	f, err := os.OpenFile("./photos/"+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
-	if err != nil {
-		fmt.Println(err)
+	f, errFile := os.OpenFile("./photos/"+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
+	if errFile != nil {
+		fmt.Println(errFile)
 		return
 	}
 	defer f.Close()
 	io.Copy(f, file)
+}
+
+func deletePostByID(c *gin.Context) {
+	id := c.PostForm("id")
+	user := c.PostForm("user")
+	log.Println("---------------------------------")
+	sessionUser := sessions.Default(c).Get("user")
+
+	if user != sessionUser {
+		c.JSON(200, gin.H{
+			"err": "Unable to delete post.",
+		})
+		return
+	}
+
+	_, err = db.Exec("delete from posts where id=? and posted_by=? limit 1", id, user)
+	if err != nil {
+		log.Fatal(err)
+		c.JSON(500, gin.H{
+			"err": "Unable to delete post.",
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"deleted": true,
+	})
 }
