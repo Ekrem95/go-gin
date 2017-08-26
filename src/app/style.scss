@@ -355,3 +355,51 @@ body {
     }
   }
 }
+
+@media (max-width: 600px) {
+  body {
+    .form{
+      input, button {
+        width: 80vw;
+      }
+
+      p {
+        max-width: 80vw;
+      }
+    }
+
+    .home {
+      display: flex;
+      flex-flow: row;
+      flex-wrap: wrap;
+      justify-content: center;
+
+      .post {
+        margin: 1vw;
+        img {
+          margin: 0;
+          width: 46vw;
+          height: 46vw;
+        }
+      }
+
+      #popup {
+        display: none !important;
+      }
+    }
+
+    .add {
+      form {
+        input, button {
+          width: 80vw;
+        }
+      }
+    }
+
+    .myposts {
+      * {
+        max-width: 90vw;
+      }
+    }
+  }
+}
