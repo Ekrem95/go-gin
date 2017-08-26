@@ -330,3 +330,45 @@ func deletePostByID(c *gin.Context) {
 		"deleted": true,
 	})
 }
+func changePassword(c *gin.Context) {
+	current := c.PostForm("current")
+	new := c.PostForm("newPassword")
+	username := sessions.Default(c).Get("user")
+
+	var password string
+
+	err = db.QueryRow("SELECT password FROM users WHERE username=?", username).Scan(&password)
+
+	if err != nil {
+		log.Fatal(err)
+		c.JSON(500, gin.H{
+			"err": "Internal Server Error",
+		})
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(password), []byte(current))
+	if err != nil {
+		c.JSON(200, gin.H{
+			"err": "Passwords do not match",
+		})
+		return
+	}
+
+	hashedPassword, error := bcrypt.GenerateFromPassword([]byte(new), bcrypt.DefaultCost)
+	if error != nil {
+		panic(error)
+	}
+
+	_, err = db.Exec("update users set password=(?) where username=(?)", hashedPassword, username)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": "Unable to change password.",
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"done": true,
+	})
+}

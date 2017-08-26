@@ -8,8 +8,9 @@ import Details from './Details';
 import Upload from './Upload';
 import MyPosts from './MyPosts';
 import Edit from './Edit';
+import ChangePassword from './ChangePassword';
 
 export {
   Home, Signup, Login, Nav, Talkie, Add,
-  Details, Upload, MyPosts, Edit,
+  Details, Upload, MyPosts, Edit, ChangePassword,
 };
