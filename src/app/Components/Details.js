@@ -4,7 +4,7 @@ import { store } from '../redux/reducers';
 export default class Details extends Component {
   constructor() {
     super();
-    this.state = { data: null, comments: null };
+    this.state = { data: null, comments: null, likes: null };
   }
 
   componentWillMount() {
@@ -23,6 +23,17 @@ export default class Details extends Component {
           .catch(err => {
             console.log(err);
           });
+      })
+      .then(() => {
+        request.get('/get_likes/' + this.props.location.pathname.split('/').pop())
+          .then(res => {
+            if (res.body.users.indexOf(store.getState().user.user) > -1) {
+              this.setState({ liked: true });
+            }
+
+            this.setState({ likes: res.body.users.length });
+          })
+          .catch(e => e);
       });
   }
 
@@ -50,9 +61,7 @@ export default class Details extends Component {
                     .type('form')
                     .send(pac)
                     .set('Accept', 'application/json')
-                    .then(res => {
-                      console.log(res.body);
-                    })
+                    .then(res => null)
                     .catch(err => {
                       console.log(err);
                     });
@@ -92,15 +101,20 @@ export default class Details extends Component {
                 .type('form')
                 .send(pac)
                 .set('Accept', 'application/json')
-                .then(res => {
-                  console.log(res.body);
-                })
+                .then(res => null)
                 .catch(err => {
                   console.log(err);
                 });
+
+              this.setState({ liked: !this.state.liked });
+
+              this.state.liked ?
+              this.setState({ likes: this.state.likes - 1 }) :
+              this.setState({ likes: this.state.likes + 1 });
             }}
             >{this.state.liked ? 'Liked' : 'Like'}
           </button>
+          <span>{this.state.likes} likes</span>
         </div>
         {this.state.comments &&
           this.state.comments.map((c, i) => {

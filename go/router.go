@@ -423,3 +423,34 @@ func postLikes(c *gin.Context) {
 	// 	"done": true,
 	// })
 }
+
+func getLikes(c *gin.Context) {
+	id := c.Param("id")
+
+	var user string
+	var users []string
+
+	rows, error := db.Query("select user from post_likes where post_id=?", id)
+	if error != nil {
+		log.Fatal(error)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		error := rows.Scan(&user)
+		if error != nil {
+			log.Fatal(error)
+		}
+
+		users = append(users, user)
+	}
+	err = rows.Err()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	c.JSON(200, gin.H{
+		"users": users,
+	})
+
+}
