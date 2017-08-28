@@ -80,6 +80,28 @@ export default class Details extends Component {
               ></textarea>
           </div>
         }
+        <div className="likes">
+          <button
+            onClick={() => {
+              const postID = this.props.location.pathname.split('/').pop();
+              const user = store.getState().user.user;
+              const pac = { postID, user };
+
+              request
+                .post('/post_likes')
+                .type('form')
+                .send(pac)
+                .set('Accept', 'application/json')
+                .then(res => {
+                  console.log(res.body);
+                })
+                .catch(err => {
+                  console.log(err);
+                });
+            }}
+            >{this.state.liked ? 'Liked' : 'Like'}
+          </button>
+        </div>
         {this.state.comments &&
           this.state.comments.map((c, i) => {
             const date = new Date(c.time * 1000).toDateString();

@@ -64,6 +64,7 @@ func main() {
 	r.POST("/edit/:id", editPost)
 	r.POST("/delete/:id", deletePostByID)
 	r.POST("/changepassword", changePassword)
+	r.POST("/post_likes", postLikes)
 
 	// socketio
 	r.GET("/socket.io/", gin.WrapH(server))

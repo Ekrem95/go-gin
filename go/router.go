@@ -372,3 +372,54 @@ func changePassword(c *gin.Context) {
 		"done": true,
 	})
 }
+
+func postLikes(c *gin.Context) {
+	postID := c.PostForm("postID")
+	user := c.PostForm("user")
+
+	var id int
+	var username string
+
+	err = db.QueryRow("SELECT post_id, user FROM post_likes WHERE post_id=? and user=?", postID, user).Scan(&id, &username)
+
+	switch {
+	case err == sql.ErrNoRows:
+		_, err = db.Exec("INSERT INTO post_likes (post_id, user) VALUES(?, ?)", postID, user)
+		if err != nil {
+			c.JSON(500, gin.H{
+				"error": "Unable to add.",
+			})
+			return
+		}
+
+		c.JSON(200, gin.H{
+			"success": true,
+		})
+		return
+	case err != nil:
+		c.JSON(500, gin.H{
+			"error": "An error occured.",
+		})
+		return
+	default:
+		_, err = db.Exec("delete from post_likes where post_id=? and user=? limit 1", postID, user)
+		if err != nil {
+			c.JSON(500, gin.H{
+				"error": "Unable to delete.",
+			})
+			return
+		}
+	}
+
+	// _, err = db.Exec("insert into post_likes (post_id, user)  select * from (select " + postID + ", '" + user + "') as tmp where not exists ( select post_id, user from post_likes where post_id = " + postID + "  and user = '" + user + "' ) limit 1")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// 	c.JSON(500, gin.H{
+	// 		"error": "Unable to add.",
+	// 	})
+	// 	return
+	// }
+	// c.JSON(200, gin.H{
+	// 	"done": true,
+	// })
+}
