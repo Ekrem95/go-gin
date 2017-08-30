@@ -394,6 +394,44 @@ body {
       }
     }
   }
+
+  .upload {
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+    align-items: center;
+
+    #dropzone {
+      border: 1px dashed white;
+      width: 200px;
+      height: 200px;
+      border-radius: 6px;
+      display: flex;
+      flex-flow: column;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    #bar {
+      width: 200px;
+      height: 26px;
+      border-radius: 3px;
+      border: dashed 1px #eee;
+    }
+
+    #progress {
+      background: rgb(41, 172, 70);
+      border-radius: 3px;
+      height: 26px;
+      width: 0;
+      transition: width 1s, transform 1s;
+    }
+
+    #file {
+      display: none;
+    }
+  }
 }
 
 @media (max-width: 600px) {

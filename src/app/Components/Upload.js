@@ -1,51 +1,90 @@
 import React, { Component } from 'react';
-import Dropzone from 'react-dropzone';
 import request from 'superagent';
 
 export default class Upload extends Component {
   constructor() {
     super();
-    this.state = { files: [], msg: null };
     this.onDrop = this.onDrop.bind(this);
-    this.onOpenClick = this.onOpenClick.bind(this);
   }
 
   onDrop(files) {
-    var photo = new FormData();
-    photo.append('photo', files[0]);
+    const formData = new FormData();
+    formData.append('photo', files[0], files[0].name);
 
-    request.post('/upload')
-      .send(photo)
-      .end((err, resp) => {
-        if (err) {
-          console.error(err);
-          this.setState({ msg: 'Error Occured While Uploading Image.' });
-        } else {
-          this.setState({ msg: 'Image Uploaded Succesfully.' });
-        }
-      });
-  }
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/upload', true);
 
-  onOpenClick(files) {
-    this.refs.dropzone.open();
+    xhr.upload.addEventListener('progress', function (evt) {
+          if (evt.lengthComputable) {
+            const progress = document.getElementById('progress');
+            progress.setAttribute('style', `width: ${evt.loaded / evt.total * 100 * 2}px`);
+          }
+        }, false);
+
+    xhr.onloadstart = function (e) {
+      const progress = document.getElementById('progress');
+      progress.setAttribute('style', `width: 0px`);
+    };
+
+    xhr.onloadend = function (e) {
+          // console.log('end');
+        };
+
+    xhr.onload = function () {
+      if (xhr.status !== 200) {
+        console.log('An error occurred!');
+      }
+    };
+
+    xhr.send(formData);
   }
 
   render() {
     return (
-      <div>
-        <Dropzone ref="dropzone" multiple={false} accept={'image/*'} onDrop={this.onDrop}>
-           <div>Try dropping some files here, or click to select files to upload.</div>
-         </Dropzone>
-         {this.state.msg &&
-           <p>{this.state.msg}</p>
-         }
-         {/* <button type="button" onClick={this.onOpenClick}>
-             Open Dropzone
-         </button> */}
-         {/* {this.state.files ? <div>
-         <h2>Uploading {this.state.files.length} files...</h2>
-         <div>{this.state.files.map(file => <img src={file.preview} />)}</div>
-         </div> : null} */}
+      <div className="upload">
+        <h1>Upload</h1>
+        <p
+          onClick={() => {
+            document.getElementById('file').click();
+          }}
+
+          onDragLeave={(e) => {
+            e.preventDefault();
+            e.target.style.background = '#000';
+          }}
+
+          onDragOver={(e) => {
+            e.preventDefault();
+          }}
+
+          onDragEnter={(e) => {
+            e.preventDefault();
+            e.target.style.background = '#333';
+          }}
+
+          onDrop={(e) => {
+            e.preventDefault();
+            e.target.style.background = '#000';
+            const files = e.dataTransfer.files;
+            this.onDrop(files);
+          }}
+
+          id="dropzone">
+          Drag & Drop here to upload
+        </p>
+        <div id="bar">
+          <div id="progress"></div>
+        </div>
+        <input
+          type="file"
+          id="file"
+          onChange={() => {
+            var input = document.getElementById('file');
+            var curFiles = input.files;
+            this.onDrop(curFiles);
+          }}
+
+         />
       </div>
     );
   }
