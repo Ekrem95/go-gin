@@ -27,11 +27,13 @@ export default class Details extends Component {
       .then(() => {
         request.get('/get_likes/' + this.props.location.pathname.split('/').pop())
           .then(res => {
-            if (res.body.users.indexOf(store.getState().user.user) > -1) {
-              this.setState({ liked: true });
-            }
+            if (res.body.users !== null) {
+              if (res.body.users.indexOf(store.getState().user.user) > -1) {
+                this.setState({ liked: true });
+              }
 
-            this.setState({ likes: res.body.users.length });
+              this.setState({ likes: res.body.users.length });
+            } else { this.setState({ likes: 0 }); }
           })
           .catch(e => e);
       });

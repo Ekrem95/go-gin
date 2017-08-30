@@ -22,19 +22,28 @@ body {
       @include center-items;
       margin: 12px;
 
-
-      // * {
-      //   width: 400px;
-      // }
-
-      // p {
-      //   text-align: justify;
-      // }
-
       img {
         width: 200px;
         height: 200px;
         object-fit: cover;
+
+        animation: fadein 1s;
+
+        @keyframes fadein {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+
+        // animation: 1s ease-out 0s 1 slideInFromLeft;
+        //
+        // @keyframes slideInFromLeft {
+        //   0% {
+        //     transform: translateX(-100%);
+        //   }
+        //   100% {
+        //     transform: translateX(0);
+        //   }
+        // }
       }
     }
 

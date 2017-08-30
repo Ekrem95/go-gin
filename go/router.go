@@ -103,6 +103,7 @@ func loginPOST(c *gin.Context) {
 	}
 
 	session := sessions.Default(c)
+	session.Options(sessions.Options{MaxAge: 604800})
 	session.Set("user", databaseUsername)
 	user := session.Get("user")
 	session.Save()
