@@ -10,23 +10,20 @@ export default class Add extends Component {
 
   add() {
     const title = this.refs.title.value;
-    const desc = this.refs.desc.value;
+    const description = this.refs.desc.value;
     const src = this.refs.src.value;
     const postedBy = store.getState().user.user;
 
-    const pac = { title, desc, src, postedBy };
-
-    request
-      .post('/add')
-      .type('form')
-      .send(pac)
-      .set('Accept', 'application/json')
-      .then(res => {
-        if (res.body.done === true) {
-          this.props.history.push('/');
-        }
-      });
-
+    fetch('/add', {
+      method: 'post',
+      body: JSON.stringify({ title, description, src, postedBy }),
+    })
+    .then(res => res.json())
+    .then(res => {
+      if (res.done === true) {
+        this.props.history.push('/');
+      }
+    });
   }
 
   render() {

@@ -42,24 +42,20 @@ export default class ChangePassword extends Component {
                   if (newPassword !== current) {
                     this.setState({ errors: [] });
 
-                    const pac = { current, newPassword };
+                    const http = new XMLHttpRequest();
+                    const url = '/changepassword';
+                    const params = `current=${current}&newPassword=${newPassword}`;
+                    http.open('POST', url, true);
 
-                    request
-                      .post('/changepassword')
-                      .type('form')
-                      .send(pac)
-                      .set('Accept', 'application/json')
-                      .then(res => {
-                        if (res.body.done === true) {
-                          this.props.history.push('/myposts');
-                        } else {
-                          const errors = [];
-                          const err = 'Wrong password.';
-                          errors.push(err);
-                          this.setState({ errors });
+                    http.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
+                    http.onreadystatechange = function () {
+                        if (http.readyState == 4 && http.status == 200) {
+                          console.log(JSON.parse(http.responseText));
                         }
-                      })
-                      .catch(e => e);
+                      };
+
+                    http.send(params);
                   } else {
                     const errors = [];
                     const err = 'New and old passwords should be different.';

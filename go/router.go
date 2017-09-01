@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -128,11 +129,12 @@ func logout(c *gin.Context) {
 
 func addPost(c *gin.Context) {
 	var post Post
-	// post := Article{"a","b","c", [], 6}
-	post.Title = c.PostForm("title")
-	post.Description = c.PostForm("desc")
-	post.Src = c.PostForm("src")
-	post.PostedBy = c.PostForm("postedBy")
+	decoder := json.NewDecoder(c.Request.Body)
+	error := decoder.Decode(&post)
+	if error != nil {
+		panic(error)
+	}
+	defer c.Request.Body.Close()
 
 	_, err = db.Exec("INSERT INTO posts(title, description, src, posted_by) VALUES(?, ?, ?, ?)", post.Title, post.Description, post.Src, post.PostedBy)
 	if err != nil {
