@@ -243,10 +243,13 @@ func getPostByUsername(c *gin.Context) {
 
 func postComment(c *gin.Context) {
 	var comment Comment
+	decoder := json.NewDecoder(c.Request.Body)
+	error := decoder.Decode(&comment)
+	if error != nil {
+		panic(error)
+	}
+	defer c.Request.Body.Close()
 
-	comment.Sender = c.PostForm("sender")
-	comment.PostID = c.PostForm("postId")
-	comment.Text = c.PostForm("text")
 	comment.Time = time.Now().Unix()
 
 	_, err = db.Exec("INSERT INTO comments(text, sender, postId, time) VALUES(?, ?, ?, ?)", comment.Text, comment.Sender, comment.PostID, comment.Time)
@@ -377,17 +380,22 @@ func changePassword(c *gin.Context) {
 }
 
 func postLikes(c *gin.Context) {
-	postID := c.PostForm("postID")
-	user := c.PostForm("user")
+	var like Like
+	decoder := json.NewDecoder(c.Request.Body)
+	error := decoder.Decode(&like)
+	if error != nil {
+		panic(error)
+	}
+	defer c.Request.Body.Close()
 
 	var id int
 	var username string
 
-	err = db.QueryRow("SELECT post_id, user FROM post_likes WHERE post_id=? and user=?", postID, user).Scan(&id, &username)
+	err = db.QueryRow("SELECT post_id, user FROM post_likes WHERE post_id=? and user=?", like.PostID, like.User).Scan(&id, &username)
 
 	switch {
 	case err == sql.ErrNoRows:
-		_, err = db.Exec("INSERT INTO post_likes (post_id, user) VALUES(?, ?)", postID, user)
+		_, err = db.Exec("INSERT INTO post_likes (post_id, user) VALUES(?, ?)", like.PostID, like.User)
 		if err != nil {
 			c.JSON(500, gin.H{
 				"error": "Unable to add.",
@@ -405,7 +413,7 @@ func postLikes(c *gin.Context) {
 		})
 		return
 	default:
-		_, err = db.Exec("delete from post_likes where post_id=? and user=? limit 1", postID, user)
+		_, err = db.Exec("delete from post_likes where post_id=? and user=? limit 1", like.PostID, like.User)
 		if err != nil {
 			c.JSON(500, gin.H{
 				"error": "Unable to delete.",
@@ -413,6 +421,8 @@ func postLikes(c *gin.Context) {
 			return
 		}
 	}
+
+	// ****************************************************************
 
 	// _, err = db.Exec("insert into post_likes (post_id, user)  select * from (select " + postID + ", '" + user + "') as tmp where not exists ( select post_id, user from post_likes where post_id = " + postID + "  and user = '" + user + "' ) limit 1")
 	// if err != nil {

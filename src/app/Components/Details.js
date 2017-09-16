@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import request from 'superagent';
 import { store } from '../redux/reducers';
 export default class Details extends Component {
   constructor() {
@@ -8,35 +7,31 @@ export default class Details extends Component {
   }
 
   componentWillMount() {
-    request.get('/api/postbyid/' + this.props.location.pathname.split('/').pop())
-      .then(res => {
-        this.setState({ data: res.body.post });
-      })
-      .catch(err => {
-        console.log(err);
-      })
-      .then(() => {
-        request.get('/api/commentsbyid/' + this.props.location.pathname.split('/').pop())
-          .then(res => {
-            this.setState({ comments: res.body.comments });
-          })
-          .catch(err => {
-            console.log(err);
-          });
-      })
-      .then(() => {
-        request.get('/get_likes/' + this.props.location.pathname.split('/').pop())
-          .then(res => {
-            if (res.body.users !== null) {
-              if (res.body.users.indexOf(store.getState().user.user) > -1) {
-                this.setState({ liked: true });
-              }
+    fetch('/api/postbyid/' + this.props.location.pathname.split('/').pop())
+    .then(r => r.json())
+    .then(r => this.setState({ data: r.post }))
+    .catch(e => console.log(e))
+    .then(() => {
+      fetch('/api/commentsbyid/' + this.props.location.pathname.split('/').pop())
+      .then(r => r.json())
+      .then(r => this.setState({ comments: r.comments }))
+      .catch(e => console.log(e));
+    })
+    .then(() => {
+      fetch('/get_likes/' + this.props.location.pathname.split('/').pop())
+      .then(r => r.json())
+      .then(r => {
+        if (r.users !== null) {
+          if (r.users.indexOf(store.getState().user.user) > -1) {
+            this.setState({ liked: true });
+          }
 
-              this.setState({ likes: res.body.users.length });
-            } else { this.setState({ likes: 0 }); }
-          })
-          .catch(e => e);
+          this.setState({ likes: r.users.length });
+        } else {
+          this.setState({ likes: 0 });
+        }
       });
+    });
   }
 
   render() {
@@ -53,20 +48,17 @@ export default class Details extends Component {
               onKeyUp={(e) => {
                 if (e.keyCode === 13) {
                   const text = this.refs.comment.value;
-                  const postId = this.state.data.id;
+                  const postId = this.state.data.id.toString();
                   const sender = store.getState().user.user;
 
                   const pac = { text, postId, sender };
 
-                  request
-                    .post('/comment')
-                    .type('form')
-                    .send(pac)
-                    .set('Accept', 'application/json')
-                    .then(res => null)
-                    .catch(err => {
-                      console.log(err);
-                    });
+                  fetch('/comment', {
+                    method: 'post',
+                    body: JSON.stringify(pac),
+                  })
+                  .then(res => res.json())
+                  .then(res => console.log(res));
 
                   this.refs.comment.value = '';
 
@@ -98,15 +90,12 @@ export default class Details extends Component {
               const user = store.getState().user.user;
               const pac = { postID, user };
 
-              request
-                .post('/post_likes')
-                .type('form')
-                .send(pac)
-                .set('Accept', 'application/json')
-                .then(res => null)
-                .catch(err => {
-                  console.log(err);
-                });
+              fetch('/post_likes', {
+                method: 'post',
+                body: JSON.stringify(pac),
+              })
+              .then(res => null)
+              .catch(e => console.log(e));
 
               this.setState({ liked: !this.state.liked });
 

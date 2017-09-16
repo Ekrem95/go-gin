@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -14,7 +15,8 @@ func main() {
 	store, _ := sessions.NewRedisStore(10, "tcp", "localhost:6379", "", []byte("secret"))
 	r.Use(sessions.Sessions("session", store))
 	r.LoadHTMLGlob("../templates/*")
-	r.Static("/src", "../src")
+	// r.Static("/src", "../src")
+	r.StaticFS("/src", http.Dir("../src"))
 	r.StaticFile("/favicon.ico", "../templates/favicon.ico")
 
 	// socketio

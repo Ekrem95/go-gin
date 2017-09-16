@@ -30,3 +30,9 @@ type Comment struct {
 	Time   int64  `json:"time"`
 	Sender string `json:"sender"`
 }
+
+// Like type
+type Like struct {
+	PostID string `json:"postID"`
+	User   string `json:"user"`
+}
