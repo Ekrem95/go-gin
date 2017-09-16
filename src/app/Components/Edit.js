@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import request from 'superagent';
 
 export default class Edit extends Component {
   constructor() {
@@ -9,10 +8,9 @@ export default class Edit extends Component {
   }
 
   componentWillMount() {
-    request.get('/api/postbyid/' + this.props.location.pathname.split('/').pop())
-      .then(res => {
-        this.setState({ post: res.body.post });
-      })
+    fetch('/api/postbyid/' + this.props.location.pathname.split('/').pop())
+      .then(res => res.json())
+      .then(res => this.setState({ post: res.post }))
       .catch(e => e);
   }
 
@@ -23,17 +21,17 @@ export default class Edit extends Component {
 
     const pac = { title, description, src };
 
-    request
-      .post('/edit/' + this.props.location.pathname.split('/').pop())
-      .type('form')
-      .send(pac)
-      .set('Accept', 'application/json')
-      .then(res => {
-        if (res.body.done === true) {
-          this.props.history.push('/myposts');
-        }
-      })
-      .catch(e => e);
+    fetch('/edit/' + this.props.location.pathname.split('/').pop(), {
+      method: 'post',
+      body: JSON.stringify(pac),
+    })
+    .then(res => res.json())
+    .then(res => {
+      if (res.done === true) {
+        this.props.history.push('/myposts');
+      }
+    })
+    .catch(e => console.log(e));
   }
 
   render() {
@@ -61,7 +59,7 @@ export default class Edit extends Component {
               }}
 
               type="button"
-              >Add
+              >Edit
             </button>
           </form>
         }

@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { store } from '../redux/reducers';
-import request from 'superagent';
 import { Link } from 'react-router-dom';
 import $ from 'jquery';
 
@@ -23,12 +22,13 @@ export default class MyPosts extends Component {
   }
 
   getPostByUsername() {
-    request.get('/api/getpostbyusername/' + store.getState().user.user)
+    fetch('/api/getpostbyusername/' + store.getState().user.user)
+      .then(res => res.json())
       .then(res => {
         let posts = [];
 
-        Object.keys(res.body.p).map((e) => {
-          posts.push({ id: e, title: res.body.p[e] });
+        Object.keys(res.p).map(e => {
+          posts.push({ id: e, title: res.p[e] });
         });
 
         this.setState({ posts });
@@ -88,21 +88,27 @@ export default class MyPosts extends Component {
             <button
               onClick={() => {
                 $('#dlgbox').fadeOut();
-                request
-                  .post('/delete/' + this.props.location.pathname.split('/').pop())
-                  .type('form')
-                  .send(this.state.pac)
-                  .set('Accept', 'application/json')
-                  .then(res => {
-                    if (res.body.deleted === true) {
-                      const posts = this.state.posts.filter(pos => pos.id !== this.state.pac.id);
-                      this.setState({ posts });
-                    } else {
-                      // there was an error
-                      return;
-                    }
-                  })
-                  .catch(e => e);
+
+                var data = new FormData();
+                data.append('user', this.state.pac.user);
+                data.append('id', this.state.pac.id);
+
+                fetch('/delete/' + this.props.location.pathname.split('/').pop(), {
+                  method: 'post',
+                  credentials: 'same-origin',
+                  body: data,
+                })
+                .then(res => res.json())
+                .then(res => {
+                  if (res.deleted === true) {
+                    const posts = this.state.posts.filter(pos => pos.id !== this.state.pac.id);
+                    this.setState({ posts });
+                  } else {
+                    // there was an error
+                    return;
+                  }
+                })
+                .catch(e => e);
               }}>
               OK
             </button>

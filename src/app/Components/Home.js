@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { auth } from '../redux/reducers';
-import request from 'superagent';
 import $ from 'jquery';
 
 export default class Home extends Component {
@@ -17,10 +16,11 @@ export default class Home extends Component {
       }
     });
 
-    request.get('/api/posts')
-      .then(res => {
-        if (res.body !== null) {
-          const posts = res.body.posts.reverse();
+    fetch('/api/posts')
+      .then(r => r.json())
+      .then(r => {
+        if (r !== null) {
+          const posts = r.posts.reverse();
           this.setState({ posts });
         }
       });

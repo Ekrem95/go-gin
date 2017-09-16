@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import io from 'socket.io-client';
 import { store } from '../redux/reducers';
 import $ from 'jquery';
-import request from 'superagent';
 
 export default class Talkie extends Component {
   constructor() {
@@ -19,11 +18,12 @@ export default class Talkie extends Component {
 
     this.jquery();
 
-    request.get('/messages')
+    fetch('/messages')
+      .then(r => r.json())
       .then(res => {
         let messages = [];
-        for (let i = res.body.messages.length - 1; i >= 0; i--) {
-          messages.push(JSON.parse(res.body.messages[i]));
+        for (let i = res.messages.length - 1; i >= 0; i--) {
+          messages.push(JSON.parse(res.messages[i]));
         }
 
         this.setState({ messages });

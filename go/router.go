@@ -150,12 +150,17 @@ func addPost(c *gin.Context) {
 }
 
 func editPost(c *gin.Context) {
-	id := c.Param("id")
-	title := c.PostForm("title")
-	description := c.PostForm("description")
-	src := c.PostForm("src")
+	var post Post
+	decoder := json.NewDecoder(c.Request.Body)
+	error := decoder.Decode(&post)
+	if error != nil {
+		panic(error)
+	}
+	defer c.Request.Body.Close()
 
-	_, err = db.Exec("update posts set title = (?), description = (?), src = (?) where id=?", title, description, src, id)
+	id := c.Param("id")
+
+	_, err = db.Exec("update posts set title = (?), description = (?), src = (?) where id=?", post.Title, post.Description, post.Src, id)
 	if err != nil {
 		log.Fatal(err)
 		c.JSON(500, gin.H{
@@ -313,7 +318,6 @@ func uploadFile(c *gin.Context) {
 func deletePostByID(c *gin.Context) {
 	id := c.PostForm("id")
 	user := c.PostForm("user")
-	log.Println("---------------------------------")
 	sessionUser := sessions.Default(c).Get("user")
 
 	if user != sessionUser {

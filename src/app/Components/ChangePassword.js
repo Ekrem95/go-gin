@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import request from 'superagent';
 
 export default class ChangePassword extends Component {
   constructor() {

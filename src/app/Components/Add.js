@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import request from 'superagent';
 import { store } from '../redux/reducers';
 
 export default class Add extends Component {

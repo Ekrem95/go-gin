@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import request from 'superagent';
 import { store } from '../redux/reducers';
 import { NameInput, PasswordInput } from './index';
 
@@ -32,26 +31,31 @@ export default class Form extends Component {
                 username: this.state.name, password: this.state.password,
               };
 
-              request
-                .post(this.props.post)
-                .type('form')
-                .send(payload)
-                .set('Accept', 'application/json')
-                .then(res => {
-                  if (res.body.user) {
-                    store.dispatch({ type: 'AUTH' });
-                    store.dispatch({ type: 'USER', payload: res.body.user });
-                    this.props.history.push('/');
-                  } else if (res.body.err) {
-                    this.setState({
-                      err: 'Wrong username & password combination',
-                    });
-                  } else if (res.body.error) {
-                    this.setState({
-                      err: res.body.error,
-                    });
-                  }
-                });
+              var data = new FormData();
+              data.append('username', this.state.name);
+              data.append('password', this.state.password);
+
+              fetch(this.props.post, {
+                method: 'POST',
+                credentials: 'same-origin',
+                body: data,
+              })
+              .then(r => r.json())
+              .then(res => {
+                if (res.user) {
+                  store.dispatch({ type: 'AUTH' });
+                  store.dispatch({ type: 'USER', payload: res.user });
+                  this.props.history.push('/');
+                } else if (res.err) {
+                  this.setState({
+                    err: 'Wrong username & password combination',
+                  });
+                } else if (res.error) {
+                  this.setState({
+                    err: res.error,
+                  });
+                }
+              });
             }
           }}
           >{this.props.header}</button>

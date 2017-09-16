@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { NavLink } from 'react-router-dom';
-import request from 'superagent';
 import { store } from '../redux/reducers';
 
 export default class Nav extends Component {
@@ -10,14 +9,16 @@ export default class Nav extends Component {
   }
 
   componentWillMount() {
-    request
-      .get('/user')
+    fetch('/user', {
+      credentials: 'same-origin',
+    })
+      .then(r => r.json())
       .then(res => {
-        if (res.body.user === null) {
+        if (res.user === null) {
           store.dispatch({ type: 'UNAUTH' });
         } else {
           store.dispatch({ type: 'AUTH' });
-          store.dispatch({ type: 'USER', payload: res.body.user });
+          store.dispatch({ type: 'USER', payload: res.user });
         }
       });
     store.subscribe(() => {
@@ -43,12 +44,14 @@ export default class Nav extends Component {
           <NavLink to="/myposts">My Posts</NavLink>
           <span
             onClick={() => {
-              request
-                .post('/logout')
-                .then(res => {
-                  store.dispatch({ type: 'UNAUTH' });
-                  window.location.href = '/login';
-                });
+              fetch('/logout', {
+                method: 'POST',
+                credentials: 'same-origin',
+              })
+              .then(() => {
+                store.dispatch({ type: 'UNAUTH' });
+                window.location.href = '/login';
+              });
             }}
             >Logout
           </span>
