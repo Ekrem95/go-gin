@@ -1,22 +1,26 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"net/http/httptest"
+	"testing"
 
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/googollee/go-socket.io"
+	"github.com/stretchr/testify/assert"
 )
 
-func main() {
-	MySQL()
+func SetupRouter() *gin.Engine {
 	r := gin.Default()
-	gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.TestMode)
+
 	store, _ := sessions.NewRedisStore(10, "tcp", "localhost:6379", "", []byte("secret"))
-	r.Use(sessions.Sessions("session", store))
+	r.Use(sessions.Sessions("session_test", store))
 	r.LoadHTMLGlob("../templates/*")
-	// r.Static("/src", "../src")
+
 	r.StaticFS("/src", http.Dir("../src"))
 	r.StaticFile("/favicon.ico", "../templates/favicon.ico")
 
@@ -70,9 +74,38 @@ func main() {
 	r.POST("/changepassword", changePassword)
 	r.POST("/post_likes", postLikes)
 
-	// socketio
 	r.GET("/socket.io/", gin.WrapH(server))
 	r.POST("/socket.io/", gin.WrapH(server))
 
-	r.Run(":8080")
+	return r
+}
+
+func Setup() {
+	r := SetupRouter()
+	r.Run()
+}
+
+func TestDB(t *testing.T) {
+	Setup()
+	MySQL()
+}
+
+func TestGetArticles(t *testing.T) {
+	testRouter := SetupRouter()
+	// var post Post
+
+	url := fmt.Sprintf("/api/posts")
+
+	req, error := http.NewRequest("GET", url, nil)
+	// req.Header.Set("Cookie", signinCookie)
+
+	if error != nil {
+		fmt.Println(error)
+	}
+
+	resp := httptest.NewRecorder()
+
+	testRouter.ServeHTTP(resp, req)
+	assert.Equal(t, resp.Code, 200)
+	// fmt.Println(resp.Body)
 }
