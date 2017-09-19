@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	"github.com/gin-gonic/contrib/sessions"
@@ -80,6 +82,9 @@ func SetupRouter() *gin.Engine {
 	return r
 }
 
+// resp, err := http.PostForm("http://example.com/form",
+// 	url.Values{"key": {"Value"}, "id": {"123"}})
+
 func Setup() {
 	r := SetupRouter()
 	r.Run()
@@ -88,6 +93,38 @@ func Setup() {
 func TestDB(t *testing.T) {
 	Setup()
 	MySQL()
+}
+
+func TestGetArticle(t *testing.T) {
+	testRouter := SetupRouter()
+
+	articleID := 12 //Lion's Head Caves Adventure
+
+	url := fmt.Sprintf("/api/postbyid/%d", articleID)
+
+	req, error := http.NewRequest("GET", url, nil)
+	// req.Header.Set("Cookie", signinCookie)
+
+	if error != nil {
+		fmt.Println(error)
+	}
+
+	resp := httptest.NewRecorder()
+
+	testRouter.ServeHTTP(resp, req)
+	assert.Equal(t, resp.Code, 200)
+
+	type Data struct {
+		Data Post `json:"post"`
+	}
+	var p Data
+	error = json.NewDecoder(resp.Body).Decode(&p)
+	if error != nil {
+		fmt.Println(error)
+		return
+	}
+
+	assert.Equal(t, p.Data.Title, "Lion's Head Caves Adventure")
 }
 
 func TestGetArticles(t *testing.T) {
@@ -107,5 +144,22 @@ func TestGetArticles(t *testing.T) {
 
 	testRouter.ServeHTTP(resp, req)
 	assert.Equal(t, resp.Code, 200)
-	// fmt.Println(resp.Body)
+
+	type Data struct {
+		Data []Post `json:"posts"`
+	}
+
+	var p Data
+	error = json.NewDecoder(resp.Body).Decode(&p)
+	if error != nil {
+		fmt.Println(error)
+		return
+	}
+
+	for _, v := range p.Data {
+		if reflect.ValueOf(v).Kind() != reflect.Struct {
+			t.Error("Wrong data type.")
+		}
+	}
+
 }
