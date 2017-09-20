@@ -59,8 +59,8 @@ func main() {
 	r.GET("/changepassword", common)
 	r.GET("/get_likes/:id", getLikes)
 
-	r.POST("/signup", signupPOST)
-	r.POST("/login", loginPOST)
+	r.POST("/signup", signup)
+	r.POST("/login", login)
 	r.POST("/logout", logout)
 	r.POST("/add", addPost)
 	r.POST("/comment", postComment)

@@ -30,7 +30,7 @@ func getUser(c *gin.Context) {
 	})
 }
 
-func signupPOST(c *gin.Context) {
+func signup(c *gin.Context) {
 	username := c.PostForm("username")
 	hashedPassword, error := bcrypt.GenerateFromPassword([]byte(c.PostForm("password")), bcrypt.DefaultCost)
 	if error != nil {
@@ -74,7 +74,7 @@ func signupPOST(c *gin.Context) {
 	}
 }
 
-func loginPOST(c *gin.Context) {
+func login(c *gin.Context) {
 
 	username := c.PostForm("username")
 	password := c.PostForm("password")
@@ -87,7 +87,7 @@ func loginPOST(c *gin.Context) {
 	err = db.QueryRow("SELECT username, password FROM users WHERE username=?", username).Scan(&databaseUsername, &databasePassword)
 	// If not then redirect to the login page
 	if err != nil {
-		c.JSON(200, gin.H{
+		c.JSON(401, gin.H{
 			"err": err,
 		})
 		return
@@ -96,7 +96,7 @@ func loginPOST(c *gin.Context) {
 	// Validate the password
 	err = bcrypt.CompareHashAndPassword([]byte(databasePassword), []byte(password))
 	if err != nil {
-		c.JSON(200, gin.H{
+		c.JSON(401, gin.H{
 			"err":  err,
 			"desc": "Passwords do not match",
 		})

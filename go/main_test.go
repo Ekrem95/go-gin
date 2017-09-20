@@ -6,7 +6,9 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/contrib/sessions"
@@ -14,6 +16,11 @@ import (
 	"github.com/googollee/go-socket.io"
 	"github.com/stretchr/testify/assert"
 )
+
+var signinCookie string
+
+var testUsername = "test"
+var testPassword = "123456"
 
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
@@ -65,8 +72,8 @@ func SetupRouter() *gin.Engine {
 	r.GET("/changepassword", common)
 	r.GET("/get_likes/:id", getLikes)
 
-	r.POST("/signup", signupPOST)
-	r.POST("/login", loginPOST)
+	r.POST("/signup", signup)
+	r.POST("/login", login)
 	r.POST("/logout", logout)
 	r.POST("/add", addPost)
 	r.POST("/comment", postComment)
@@ -95,6 +102,46 @@ func TestDB(t *testing.T) {
 	MySQL()
 }
 
+func TestSignin(t *testing.T) {
+	testRouter := SetupRouter()
+
+	// type SigninForm struct {
+	// 	Username string `form:"username" json:"username"`
+	// 	Password string `form:"password" json:"password"`
+	// }
+	//
+	// var signinForm SigninForm
+	//
+	// signinForm.Username = testEmail
+	// signinForm.Password = testPassword
+	//
+	// data, _ := json.Marshal(signinForm)
+
+	form := url.Values{}
+	form.Add("username", testUsername)
+	form.Add("password", testPassword)
+
+	req, error := http.NewRequest("POST", "/login", strings.NewReader(form.Encode()))
+	req.PostForm = form
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	// req, error := http.NewRequest("POST", "/login", bytes.NewBufferString(string(data)))
+	// req.Header.Set("Content-Type", "application/json")
+
+	if error != nil {
+		fmt.Println(error)
+	}
+
+	resp := httptest.NewRecorder()
+
+	testRouter.ServeHTTP(resp, req)
+
+	signinCookie = resp.Header().Get("Set-Cookie")
+
+	assert.Equal(t, resp.Code, 200)
+	fmt.Println(resp.Body)
+}
+
 func TestGetArticle(t *testing.T) {
 	testRouter := SetupRouter()
 
@@ -103,7 +150,7 @@ func TestGetArticle(t *testing.T) {
 	url := fmt.Sprintf("/api/postbyid/%d", articleID)
 
 	req, error := http.NewRequest("GET", url, nil)
-	// req.Header.Set("Cookie", signinCookie)
+	req.Header.Set("Cookie", signinCookie)
 
 	if error != nil {
 		fmt.Println(error)
@@ -134,7 +181,7 @@ func TestGetArticles(t *testing.T) {
 	url := fmt.Sprintf("/api/posts")
 
 	req, error := http.NewRequest("GET", url, nil)
-	// req.Header.Set("Cookie", signinCookie)
+	req.Header.Set("Cookie", signinCookie)
 
 	if error != nil {
 		fmt.Println(error)
