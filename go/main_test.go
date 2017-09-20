@@ -102,7 +102,28 @@ func TestDB(t *testing.T) {
 	MySQL()
 }
 
-func TestSignin(t *testing.T) {
+// func TestSignup(t *testing.T) {
+// 	testRouter := SetupRouter()
+//
+// 	form := url.Values{}
+// 	form.Add("username", testUsername)
+// 	form.Add("password", testPassword)
+//
+// 	req, error := http.NewRequest("POST", "/signup", strings.NewReader(form.Encode()))
+// 	req.PostForm = form
+// 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+//
+// 	if error != nil {
+// 		fmt.Println(error)
+// 	}
+//
+// 	resp := httptest.NewRecorder()
+//
+// 	testRouter.ServeHTTP(resp, req)
+// 	assert.Equal(t, resp.Code, 200)
+// }
+
+func TestLogin(t *testing.T) {
 	testRouter := SetupRouter()
 
 	// type SigninForm struct {
@@ -139,7 +160,6 @@ func TestSignin(t *testing.T) {
 	signinCookie = resp.Header().Get("Set-Cookie")
 
 	assert.Equal(t, resp.Code, 200)
-	fmt.Println(resp.Body)
 }
 
 func TestGetArticle(t *testing.T) {

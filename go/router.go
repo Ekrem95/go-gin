@@ -31,46 +31,50 @@ func getUser(c *gin.Context) {
 }
 
 func signup(c *gin.Context) {
-	username := c.PostForm("username")
-	hashedPassword, error := bcrypt.GenerateFromPassword([]byte(c.PostForm("password")), bcrypt.DefaultCost)
-	if error != nil {
-		panic(error)
-	}
-
-	var user string
-
-	err = db.QueryRow("SELECT username FROM users WHERE username=?", username).Scan(&user)
-
-	switch {
-	// Username is available
-	case err == sql.ErrNoRows:
-		_, err = db.Exec("INSERT INTO users(username, password) VALUES(?, ?)", username, hashedPassword)
-		if err != nil {
-			c.JSON(500, gin.H{
-				"error": "Unable to Sign up.",
-			})
-			return
+	if len(c.PostForm("username")) > 0 && len(c.PostForm("password")) > 0 {
+		username := c.PostForm("username")
+		hashedPassword, error := bcrypt.GenerateFromPassword([]byte(c.PostForm("password")), bcrypt.DefaultCost)
+		if error != nil {
+			panic(error)
 		}
 
-		session := sessions.Default(c)
-		user := username
-		session.Set("user", username)
-		session.Save()
+		var user string
 
-		c.JSON(200, gin.H{
-			"success": true,
-			"user":    user,
-		})
-		return
-	case err != nil:
-		c.JSON(500, gin.H{
-			"error": "An error occured.",
-		})
-		return
-	default:
-		c.JSON(200, gin.H{
-			"error": "Username already exists.",
-		})
+		err = db.QueryRow("SELECT username FROM users WHERE username=?", username).Scan(&user)
+
+		switch {
+		// Username is available
+		case err == sql.ErrNoRows:
+			_, err = db.Exec("INSERT INTO users(username, password) VALUES(?, ?)", username, hashedPassword)
+			if err != nil {
+				c.JSON(500, gin.H{
+					"error": "Unable to Sign up.",
+				})
+				return
+			}
+
+			session := sessions.Default(c)
+			user := username
+			session.Set("user", username)
+			session.Save()
+
+			c.JSON(200, gin.H{
+				"success": true,
+				"user":    user,
+			})
+			return
+		case err != nil:
+			c.JSON(500, gin.H{
+				"error": "An error occured.",
+			})
+			return
+		default:
+			c.JSON(401, gin.H{
+				"error": "Username already exists.",
+			})
+		}
+	} else {
+		c.JSON(401, gin.H{"error": "Both fields are required."})
 	}
 }
 
