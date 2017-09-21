@@ -54,7 +54,7 @@ func main() {
 	r.GET("/api/commentsbyid/:id", getCommentsByID)
 	r.GET("/p/*all", common)
 	r.GET("/myposts", common)
-	r.GET("/api/getpostbyusername/:name", getPostByUsername)
+	r.GET("/api/getpostbyusername/:name", getPostsByUsername)
 	r.GET("/edit/:id", common)
 	r.GET("/changepassword", common)
 	r.GET("/get_likes/:id", getLikes)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -21,6 +22,11 @@ var signinCookie string
 
 var testUsername = "test"
 var testPassword = "123456"
+
+type UserForm struct {
+	Username string `form:"username" json:"username"`
+	Password string `form:"password" json:"password"`
+}
 
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
@@ -67,7 +73,7 @@ func SetupRouter() *gin.Engine {
 	r.GET("/api/commentsbyid/:id", getCommentsByID)
 	r.GET("/p/*all", common)
 	r.GET("/myposts", common)
-	r.GET("/api/getpostbyusername/:name", getPostByUsername)
+	r.GET("/api/getpostbyusername/:name", getPostsByUsername)
 	r.GET("/edit/:id", common)
 	r.GET("/changepassword", common)
 	r.GET("/get_likes/:id", getLikes)
@@ -123,6 +129,25 @@ func TestDB(t *testing.T) {
 // 	assert.Equal(t, resp.Code, 200)
 // }
 
+func TestInvalidSignup(t *testing.T) {
+	testRouter := SetupRouter()
+
+	var form User
+
+	data, _ := json.Marshal(form)
+	req, error := http.NewRequest("POST", "/signup", bytes.NewBufferString(string(data)))
+	req.Header.Set("Content-Type", "application/json")
+
+	if error != nil {
+		fmt.Println(error)
+	}
+
+	resp := httptest.NewRecorder()
+
+	testRouter.ServeHTTP(resp, req)
+	assert.Equal(t, resp.Code, 400) //406
+}
+
 func TestLogin(t *testing.T) {
 	testRouter := SetupRouter()
 
@@ -162,6 +187,25 @@ func TestLogin(t *testing.T) {
 	assert.Equal(t, resp.Code, 200)
 }
 
+func TestInvalidLogin(t *testing.T) {
+	testRouter := SetupRouter()
+
+	var form User
+
+	data, _ := json.Marshal(form)
+	req, error := http.NewRequest("POST", "/login", bytes.NewBufferString(string(data)))
+	req.Header.Set("Content-Type", "application/json")
+
+	if error != nil {
+		fmt.Println(error)
+	}
+
+	resp := httptest.NewRecorder()
+
+	testRouter.ServeHTTP(resp, req)
+	assert.Equal(t, resp.Code, 400) //406
+}
+
 func TestGetArticle(t *testing.T) {
 	testRouter := SetupRouter()
 
@@ -192,6 +236,26 @@ func TestGetArticle(t *testing.T) {
 	}
 
 	assert.Equal(t, p.Data.Title, "Lion's Head Caves Adventure")
+}
+
+func TestArticleNotFound(t *testing.T) {
+	testRouter := SetupRouter()
+
+	articleID := 123456 //Lion's Head Caves Adventure
+
+	url := fmt.Sprintf("/api/postbyid/%d", articleID)
+
+	req, error := http.NewRequest("GET", url, nil)
+	req.Header.Set("Cookie", signinCookie)
+
+	if error != nil {
+		fmt.Println(error)
+	}
+
+	resp := httptest.NewRecorder()
+
+	testRouter.ServeHTTP(resp, req)
+	assert.Equal(t, resp.Code, 404)
 }
 
 func TestGetArticles(t *testing.T) {
