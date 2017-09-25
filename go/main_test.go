@@ -22,6 +22,7 @@ var signinCookie string
 
 var testUsername = "test"
 var testPassword = "123456"
+var testArticleTitle = "Test article title"
 
 type UserForm struct {
 	Username string `form:"username" json:"username"`
@@ -108,26 +109,33 @@ func TestDB(t *testing.T) {
 	MySQL()
 }
 
-// func TestSignup(t *testing.T) {
-// 	testRouter := SetupRouter()
-//
-// 	form := url.Values{}
-// 	form.Add("username", testUsername)
-// 	form.Add("password", testPassword)
-//
-// 	req, error := http.NewRequest("POST", "/signup", strings.NewReader(form.Encode()))
-// 	req.PostForm = form
-// 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-//
-// 	if error != nil {
-// 		fmt.Println(error)
-// 	}
-//
-// 	resp := httptest.NewRecorder()
-//
-// 	testRouter.ServeHTTP(resp, req)
-// 	assert.Equal(t, resp.Code, 200)
-// }
+func TestSignup(t *testing.T) {
+	testRouter := SetupRouter()
+
+	form := url.Values{}
+	form.Add("username", testUsername)
+	form.Add("password", testPassword)
+
+	req, error := http.NewRequest("POST", "/signup", strings.NewReader(form.Encode()))
+	req.PostForm = form
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	if error != nil {
+		fmt.Println(error)
+	}
+
+	resp := httptest.NewRecorder()
+
+	testRouter.ServeHTTP(resp, req)
+	assert.Equal(t, resp.Code, 200)
+}
+
+func DeleteUser() {
+	_, err = db.Exec("delete from users where username=? limit 1", testUsername)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
 func TestInvalidSignup(t *testing.T) {
 	testRouter := SetupRouter()
@@ -149,6 +157,7 @@ func TestInvalidSignup(t *testing.T) {
 }
 
 func TestLogin(t *testing.T) {
+	defer DeleteUser()
 	testRouter := SetupRouter()
 
 	// type SigninForm struct {
@@ -293,4 +302,73 @@ func TestGetArticles(t *testing.T) {
 		}
 	}
 
+}
+
+func TestCreateArticle(t *testing.T) {
+	defer DeletePost()
+	testRouter := SetupRouter()
+
+	var post Post
+
+	post.Title = testArticleTitle
+	post.Description = "Test description"
+	post.PostedBy = testUsername
+	post.Src = "source"
+
+	data, _ := json.Marshal(post)
+
+	req, error := http.NewRequest("POST", "/add", bytes.NewBufferString(string(data)))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Cookie", signinCookie)
+
+	if error != nil {
+		fmt.Println(error)
+	}
+
+	resp := httptest.NewRecorder()
+
+	testRouter.ServeHTTP(resp, req)
+
+	// body, error := ioutil.ReadAll(resp.Body)
+	// if error != nil {
+	// 	log.Fatal(error)
+	// }
+
+	// res := struct {
+	// 	Status bool `json:"done"`
+	// }{}
+	//
+	// json.Unmarshal(body, &res)
+
+	assert.Equal(t, resp.Code, 200)
+}
+
+func DeletePost() {
+	_, err = db.Exec("delete from posts where title=?", testArticleTitle)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func TestCreateInvalidArticle(t *testing.T) {
+	testRouter := SetupRouter()
+
+	var post Post
+
+	post.Title = testArticleTitle
+
+	data, _ := json.Marshal(post)
+
+	req, error := http.NewRequest("POST", "/add", bytes.NewBufferString(string(data)))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Cookie", signinCookie)
+
+	if error != nil {
+		fmt.Println(error)
+	}
+
+	resp := httptest.NewRecorder()
+
+	testRouter.ServeHTTP(resp, req)
+	assert.Equal(t, resp.Code, 400) //406
 }

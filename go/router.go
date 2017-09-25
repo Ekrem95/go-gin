@@ -148,17 +148,24 @@ func addPost(c *gin.Context) {
 	}
 	defer c.Request.Body.Close()
 
-	_, err = db.Exec("INSERT INTO posts(title, description, src, posted_by) VALUES(?, ?, ?, ?)", post.Title, post.Description, post.Src, post.PostedBy)
-	if err != nil {
-		log.Fatal(err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Unable to add.",
+	if len(post.Title) > 0 && len(post.Description) > 0 && len(post.Src) > 0 {
+		_, err = db.Exec("INSERT INTO posts(title, description, src, posted_by) VALUES(?, ?, ?, ?)", post.Title, post.Description, post.Src, post.PostedBy)
+		if err != nil {
+			log.Fatal(err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Unable to add.",
+			})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"done": true,
 		})
-		return
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Fields for title, description and src are required.",
+		})
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"done": true,
-	})
+
 }
 
 func editPost(c *gin.Context) {
