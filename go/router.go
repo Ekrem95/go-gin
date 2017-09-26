@@ -365,6 +365,7 @@ func deletePostByID(c *gin.Context) {
 		"deleted": true,
 	})
 }
+
 func changePassword(c *gin.Context) {
 	current := c.PostForm("current")
 	new := c.PostForm("newPassword")

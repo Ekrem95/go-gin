@@ -305,7 +305,7 @@ func TestGetArticles(t *testing.T) {
 }
 
 func TestCreateArticle(t *testing.T) {
-	defer DeletePost()
+	// defer DeletePost()
 	testRouter := SetupRouter()
 
 	var post Post
@@ -348,6 +348,36 @@ func DeletePost() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func TestDeletePostByID(t *testing.T) {
+	defer DeletePost()
+	var id string
+	// var post Post
+	error := db.QueryRow("select id from posts where title =? limit 1", testArticleTitle).Scan(&id)
+	if error != nil {
+		t.Error(error)
+	}
+
+	testRouter := SetupRouter()
+
+	form := url.Values{}
+	form.Add("id", id)
+	form.Add("user", testUsername)
+
+	req, error := http.NewRequest("POST", "/delete/"+id, strings.NewReader(form.Encode()))
+	req.PostForm = form
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Cookie", signinCookie)
+
+	if error != nil {
+		fmt.Println(error)
+	}
+
+	resp := httptest.NewRecorder()
+
+	testRouter.ServeHTTP(resp, req)
+	assert.Equal(t, resp.Code, 200)
 }
 
 func TestCreateInvalidArticle(t *testing.T) {
