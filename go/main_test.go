@@ -30,6 +30,7 @@ type UserForm struct {
 }
 
 func SetupRouter() *gin.Engine {
+	MySQL()
 	r := gin.Default()
 	gin.SetMode(gin.TestMode)
 
@@ -96,17 +97,9 @@ func SetupRouter() *gin.Engine {
 	return r
 }
 
-// resp, err := http.PostForm("http://example.com/form",
-// 	url.Values{"key": {"Value"}, "id": {"123"}})
-
 func Setup() {
 	r := SetupRouter()
 	r.Run()
-}
-
-func TestDB(t *testing.T) {
-	Setup()
-	MySQL()
 }
 
 func TestSignup(t *testing.T) {
@@ -118,7 +111,7 @@ func TestSignup(t *testing.T) {
 
 	req, error := http.NewRequest("POST", "/signup", strings.NewReader(form.Encode()))
 	req.PostForm = form
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	if error != nil {
 		fmt.Println(error)
@@ -156,46 +149,6 @@ func TestInvalidSignup(t *testing.T) {
 	assert.Equal(t, resp.Code, 400) //406
 }
 
-func TestLogin(t *testing.T) {
-	defer DeleteUser()
-	testRouter := SetupRouter()
-
-	// type SigninForm struct {
-	// 	Username string `form:"username" json:"username"`
-	// 	Password string `form:"password" json:"password"`
-	// }
-	//
-	// var signinForm SigninForm
-	//
-	// signinForm.Username = testEmail
-	// signinForm.Password = testPassword
-	//
-	// data, _ := json.Marshal(signinForm)
-
-	form := url.Values{}
-	form.Add("username", testUsername)
-	form.Add("password", testPassword)
-
-	req, error := http.NewRequest("POST", "/login", strings.NewReader(form.Encode()))
-	req.PostForm = form
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-
-	// req, error := http.NewRequest("POST", "/login", bytes.NewBufferString(string(data)))
-	// req.Header.Set("Content-Type", "application/json")
-
-	if error != nil {
-		fmt.Println(error)
-	}
-
-	resp := httptest.NewRecorder()
-
-	testRouter.ServeHTTP(resp, req)
-
-	signinCookie = resp.Header().Get("Set-Cookie")
-
-	assert.Equal(t, resp.Code, 200)
-}
-
 func TestInvalidLogin(t *testing.T) {
 	testRouter := SetupRouter()
 
@@ -213,6 +166,74 @@ func TestInvalidLogin(t *testing.T) {
 
 	testRouter.ServeHTTP(resp, req)
 	assert.Equal(t, resp.Code, 400) //406
+}
+
+func TestLogin(t *testing.T) {
+	testRouter := SetupRouter()
+
+	form := url.Values{}
+	form.Add("username", testUsername)
+	form.Add("password", testPassword)
+
+	req, error := http.NewRequest("POST", "/login", strings.NewReader(form.Encode()))
+	req.PostForm = form
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	if error != nil {
+		fmt.Println(error)
+	}
+
+	resp := httptest.NewRecorder()
+
+	testRouter.ServeHTTP(resp, req)
+
+	signinCookie = resp.Header().Get("Set-Cookie")
+
+	assert.Equal(t, resp.Code, 200)
+}
+
+func TestChangePassword(t *testing.T) {
+	testRouter := SetupRouter()
+
+	form := url.Values{}
+	form.Add("current", testPassword)
+	form.Add("newPassword", "newPassword")
+
+	req, error := http.NewRequest("POST", "/changepassword", strings.NewReader(form.Encode()))
+	req.PostForm = form
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Cookie", signinCookie)
+
+	if error != nil {
+		fmt.Println(error)
+	}
+
+	resp := httptest.NewRecorder()
+
+	testRouter.ServeHTTP(resp, req)
+	assert.Equal(t, resp.Code, 200)
+}
+
+func TestChangePasswordFail(t *testing.T) {
+	testRouter := SetupRouter()
+
+	form := url.Values{}
+	form.Add("current", testPassword)
+	form.Add("newPassword", "newPassword")
+
+	req, error := http.NewRequest("POST", "/changepassword", strings.NewReader(form.Encode()))
+	req.PostForm = form
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// req.Header.Set("Cookie", signinCookie)
+
+	if error != nil {
+		fmt.Println(error)
+	}
+
+	resp := httptest.NewRecorder()
+
+	testRouter.ServeHTTP(resp, req)
+	assert.Equal(t, resp.Code, 400)
 }
 
 func TestGetArticle(t *testing.T) {
@@ -329,17 +350,6 @@ func TestCreateArticle(t *testing.T) {
 
 	testRouter.ServeHTTP(resp, req)
 
-	// body, error := ioutil.ReadAll(resp.Body)
-	// if error != nil {
-	// 	log.Fatal(error)
-	// }
-
-	// res := struct {
-	// 	Status bool `json:"done"`
-	// }{}
-	//
-	// json.Unmarshal(body, &res)
-
 	assert.Equal(t, resp.Code, 200)
 }
 
@@ -394,8 +404,8 @@ func TestDeletePostByID(t *testing.T) {
 
 	req, error := http.NewRequest("POST", "/delete/"+id, strings.NewReader(form.Encode()))
 	req.PostForm = form
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Add("Cookie", signinCookie)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Cookie", signinCookie)
 
 	if error != nil {
 		fmt.Println(error)
@@ -408,6 +418,7 @@ func TestDeletePostByID(t *testing.T) {
 }
 
 func TestCreateInvalidArticle(t *testing.T) {
+	defer DeleteUser()
 	testRouter := SetupRouter()
 
 	var post Post

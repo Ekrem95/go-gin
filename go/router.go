@@ -368,8 +368,15 @@ func deletePostByID(c *gin.Context) {
 
 func changePassword(c *gin.Context) {
 	current := c.PostForm("current")
-	new := c.PostForm("newPassword")
+	newPassword := c.PostForm("newPassword")
 	username := sessions.Default(c).Get("user")
+
+	if username == nil || len(current) < 6 || len(newPassword) < 6 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"err": "Bad Request",
+		})
+		return
+	}
 
 	var password string
 
@@ -391,7 +398,7 @@ func changePassword(c *gin.Context) {
 		return
 	}
 
-	hashedPassword, error := bcrypt.GenerateFromPassword([]byte(new), bcrypt.DefaultCost)
+	hashedPassword, error := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
 	if error != nil {
 		panic(error)
 	}
