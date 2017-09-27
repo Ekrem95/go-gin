@@ -343,6 +343,33 @@ func TestCreateArticle(t *testing.T) {
 	assert.Equal(t, resp.Code, 200)
 }
 
+func TestPostComment(t *testing.T) {
+	testRouter := SetupRouter()
+
+	var id string
+	error := db.QueryRow("select id from posts where title =? limit 1", testArticleTitle).Scan(&id)
+	if error != nil {
+		t.Error(error)
+	}
+
+	comment := &Comment{Text: "Comment", PostID: id, Sender: testUsername}
+
+	data, _ := json.Marshal(comment)
+
+	req, error := http.NewRequest("POST", "/comment", bytes.NewBufferString(string(data)))
+	req.Header.Set("Content-Type", "application/json")
+
+	if error != nil {
+		fmt.Println(error)
+	}
+
+	resp := httptest.NewRecorder()
+
+	testRouter.ServeHTTP(resp, req)
+
+	assert.Equal(t, resp.Code, 200)
+}
+
 func DeletePost() {
 	_, err = db.Exec("delete from posts where title=?", testArticleTitle)
 	if err != nil {
