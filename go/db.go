@@ -35,9 +35,16 @@ var smts = []string{
 	CREATE TABLE IF NOT EXISTS comments (
 	id INT(11) NOT NULL AUTO_INCREMENT,
 	text varchar(255),
-	postId varchar(11),
+	post_id varchar(11),
 	time INT(22),
 	sender varchar(255),
+	primary key (id) )
+	`,
+	`
+	CREATE TABLE IF NOT EXISTS post_likes (
+	id INT(11) NOT NULL AUTO_INCREMENT,
+	post_id varchar(11),
+	user varchar(11),
 	primary key (id) )
 	`,
 }
@@ -66,7 +73,7 @@ func MySQL() {
 	}
 
 	// sql.DB should be long lived "defer" closes it once this function ends
-	defer db.Close()
+	// defer db.Close()
 
 	// Test the connection to the database
 	err = db.Ping()

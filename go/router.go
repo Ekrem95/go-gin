@@ -285,7 +285,7 @@ func postComment(c *gin.Context) {
 
 	comment.Time = time.Now().Unix()
 
-	_, err = db.Exec("INSERT INTO comments(text, sender, postId, time) VALUES(?, ?, ?, ?)", comment.Text, comment.Sender, comment.PostID, comment.Time)
+	_, err = db.Exec("INSERT INTO comments(text, sender, post_id, time) VALUES(?, ?, ?, ?)", comment.Text, comment.Sender, comment.PostID, comment.Time)
 	if err != nil {
 		log.Fatal(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -303,7 +303,7 @@ func getCommentsByID(c *gin.Context) {
 	var comment Comment
 	id := c.Param("id")
 
-	rows, error := db.Query("select text, sender, postId, time from comments where postId=?", id)
+	rows, error := db.Query("select text, sender, post_id, time from comments where post_id=?", id)
 	if error != nil {
 		log.Fatal(error)
 	}

@@ -26,7 +26,7 @@ type Post struct {
 // Comment type
 type Comment struct {
 	Text   string `json:"text"`
-	PostID string `json:"postId"`
+	PostID string `json:"post_id"`
 	Time   int64  `json:"time"`
 	Sender string `json:"sender"`
 }
