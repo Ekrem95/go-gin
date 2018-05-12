@@ -18,7 +18,7 @@ export default class Home extends Component {
         fetch('/api/posts')
             .then(r => r.json())
             .then(r => {
-                if (r !== null) {
+                if (r && r.posts) {
                     const posts = r.posts.reverse();
                     this.setState({ posts });
                 }

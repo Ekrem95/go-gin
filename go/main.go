@@ -11,12 +11,19 @@ import (
 
 func main() {
 	MySQL()
-	r := gin.Default()
+
+	r := router()
+
+	r.Run(":8080")
+}
+
+func router() *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
+	r := gin.Default()
+
 	store, _ := sessions.NewRedisStore(10, "tcp", "localhost:6379", "", []byte("secret"))
 	r.Use(sessions.Sessions("session", store))
 	r.LoadHTMLGlob("../templates/*")
-	// r.Static("/src", "../src")
 	r.StaticFS("/src", http.Dir("../src"))
 	r.StaticFile("/favicon.ico", "../templates/favicon.ico")
 
@@ -74,5 +81,5 @@ func main() {
 	r.GET("/socket.io/", gin.WrapH(server))
 	r.POST("/socket.io/", gin.WrapH(server))
 
-	r.Run(":8080")
+	return r
 }

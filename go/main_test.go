@@ -8,13 +8,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
 
-	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"github.com/googollee/go-socket.io"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,81 +28,15 @@ type UserForm struct {
 	Password string `form:"password" json:"password"`
 }
 
-func SetupRouter() *gin.Engine {
+func testRouter() *gin.Engine {
+	os.Setenv("ENV", "TEST")
 	MySQL()
-	r := gin.Default()
-	gin.SetMode(gin.TestMode)
 
-	store, _ := sessions.NewRedisStore(10, "tcp", "localhost:6379", "", []byte("secret"))
-	r.Use(sessions.Sessions("session_test", store))
-	r.LoadHTMLGlob("../templates/*")
-
-	r.StaticFS("/src", http.Dir("../src"))
-	r.StaticFile("/favicon.ico", "../templates/favicon.ico")
-
-	// socketio
-	server, socketErr := socketio.NewServer(nil)
-	if socketErr != nil {
-		log.Fatal(socketErr)
-	}
-	server.On("connection", func(so socketio.Socket) {
-		log.Println("on connection")
-
-		so.Join("chat")
-
-		so.On("msg", func(msg *Message) {
-			so.BroadcastTo("chat", "dist", msg)
-			RedisSaveMsg(msg)
-		})
-		so.On("disconnection", func() {
-			log.Println("on disconnect")
-		})
-	})
-	server.On("error", func(so socketio.Socket, err error) {
-		log.Println("error:", err)
-	})
-
-	r.GET("/", common)
-	r.GET("/signup", common)
-	r.GET("/login", common)
-	r.GET("/add", common)
-	r.GET("/upload", common)
-	r.GET("/user", getUser)
-	r.GET("/messages", RedisGetMsgs)
-	r.GET("/api/posts", getPosts)
-	r.GET("/api/postbyid/:id", getPostByID)
-	r.GET("/api/commentsbyid/:id", getCommentsByID)
-	r.GET("/p/*all", common)
-	r.GET("/myposts", common)
-	r.GET("/api/getpostbyusername/:name", getPostsByUsername)
-	r.GET("/edit/:id", common)
-	r.GET("/changepassword", common)
-	r.GET("/get_likes/:id", getLikes)
-
-	r.POST("/signup", signup)
-	r.POST("/login", login)
-	r.POST("/logout", logout)
-	r.POST("/add", addPost)
-	r.POST("/comment", postComment)
-	r.POST("/upload", uploadFile)
-	r.POST("/edit/:id", editPost)
-	r.POST("/delete/:id", deletePostByID)
-	r.POST("/changepassword", changePassword)
-	r.POST("/post_likes", postLikes)
-
-	r.GET("/socket.io/", gin.WrapH(server))
-	r.POST("/socket.io/", gin.WrapH(server))
-
-	return r
-}
-
-func Setup() {
-	r := SetupRouter()
-	r.Run()
+	return router()
 }
 
 func TestSignup(t *testing.T) {
-	testRouter := SetupRouter()
+	testRouter := testRouter()
 
 	form := url.Values{}
 	form.Add("username", testUsername)
@@ -131,7 +64,7 @@ func DeleteUser() {
 }
 
 func TestInvalidSignup(t *testing.T) {
-	testRouter := SetupRouter()
+	testRouter := testRouter()
 
 	var form User
 
@@ -150,7 +83,7 @@ func TestInvalidSignup(t *testing.T) {
 }
 
 func TestInvalidLogin(t *testing.T) {
-	testRouter := SetupRouter()
+	testRouter := testRouter()
 
 	var form User
 
@@ -169,7 +102,7 @@ func TestInvalidLogin(t *testing.T) {
 }
 
 func TestLogin(t *testing.T) {
-	testRouter := SetupRouter()
+	testRouter := testRouter()
 
 	form := url.Values{}
 	form.Add("username", testUsername)
@@ -193,7 +126,7 @@ func TestLogin(t *testing.T) {
 }
 
 func TestChangePassword(t *testing.T) {
-	testRouter := SetupRouter()
+	testRouter := testRouter()
 
 	form := url.Values{}
 	form.Add("current", testPassword)
@@ -215,7 +148,7 @@ func TestChangePassword(t *testing.T) {
 }
 
 func TestChangePasswordFail(t *testing.T) {
-	testRouter := SetupRouter()
+	testRouter := testRouter()
 
 	form := url.Values{}
 	form.Add("current", testPassword)
@@ -237,7 +170,7 @@ func TestChangePasswordFail(t *testing.T) {
 }
 
 func TestGetArticle(t *testing.T) {
-	testRouter := SetupRouter()
+	testRouter := testRouter()
 
 	articleID := 12 //Lion's Head Caves Adventure
 
@@ -269,7 +202,7 @@ func TestGetArticle(t *testing.T) {
 }
 
 func TestArticleNotFound(t *testing.T) {
-	testRouter := SetupRouter()
+	testRouter := testRouter()
 
 	articleID := 123456 //Lion's Head Caves Adventure
 
@@ -289,7 +222,7 @@ func TestArticleNotFound(t *testing.T) {
 }
 
 func TestGetArticles(t *testing.T) {
-	testRouter := SetupRouter()
+	testRouter := testRouter()
 	// var post Post
 
 	url := fmt.Sprintf("/api/posts")
@@ -327,7 +260,7 @@ func TestGetArticles(t *testing.T) {
 
 func TestCreateArticle(t *testing.T) {
 	// defer DeletePost()
-	testRouter := SetupRouter()
+	testRouter := testRouter()
 
 	var post Post
 
@@ -354,7 +287,7 @@ func TestCreateArticle(t *testing.T) {
 }
 
 func TestPostComment(t *testing.T) {
-	testRouter := SetupRouter()
+	testRouter := testRouter()
 
 	var id string
 	error := db.QueryRow("select id from posts where title =? limit 1", testArticleTitle).Scan(&id)
@@ -396,7 +329,7 @@ func TestDeletePostByID(t *testing.T) {
 		t.Error(error)
 	}
 
-	testRouter := SetupRouter()
+	testRouter := testRouter()
 
 	form := url.Values{}
 	form.Add("id", id)
@@ -419,7 +352,7 @@ func TestDeletePostByID(t *testing.T) {
 
 func TestCreateInvalidArticle(t *testing.T) {
 	defer DeleteUser()
-	testRouter := SetupRouter()
+	testRouter := testRouter()
 
 	var post Post
 
