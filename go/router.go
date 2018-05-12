@@ -96,7 +96,9 @@ func login(c *gin.Context) {
 
 		// Search the database for the username provided
 		// If it exists grab the password for validation
-		err := queryRowScan("SELECT username, password FROM users WHERE username="+username, &databaseUsername, &databasePassword)
+		smt := fmt.Sprintf("SELECT username, password FROM users WHERE username = '%s'", username)
+
+		err := queryRowScan(smt, &databaseUsername, &databasePassword)
 		// If not then redirect to the login page
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
@@ -278,15 +280,15 @@ func getPostsByUsername(c *gin.Context) {
 func postComment(c *gin.Context) {
 	var comment Comment
 	decoder := json.NewDecoder(c.Request.Body)
-	error := decoder.Decode(&comment)
-	if error != nil {
-		panic(error)
+	err := decoder.Decode(&comment)
+	if err != nil {
+		panic(err)
 	}
 	defer c.Request.Body.Close()
 
 	comment.Time = time.Now().Unix()
 
-	err := exec("INSERT INTO comments(text, sender, post_id, time) VALUES(?, ?, ?, ?)", comment.Text, comment.Sender, comment.PostID, comment.Time)
+	err = exec("INSERT INTO comments(text, sender, post_id, time) VALUES(?, ?, ?, ?)", comment.Text, comment.Sender, comment.PostID, comment.Time)
 	if err != nil {
 		log.Fatal(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -384,7 +386,9 @@ func changePassword(c *gin.Context) {
 
 	var password string
 
-	err := queryRowScan("SELECT password FROM users WHERE username="+username.(string), &password)
+	smt := fmt.Sprintf("SELECT password FROM users WHERE username= '%s'", username.(string))
+
+	err := queryRowScan(smt, &password)
 
 	if err != nil {
 		log.Fatal(err)
@@ -432,7 +436,9 @@ func postLikes(c *gin.Context) {
 	var id int
 	var username string
 
-	err := queryRowScan("SELECT post_id, user FROM post_likes WHERE post_id="+like.PostID+" and user="+like.User, &id, &username)
+	smt := fmt.Sprintf("SELECT post_id, user FROM post_likes WHERE post_id= '%s' and user= '%s'", like.PostID, like.User)
+
+	err := queryRowScan(smt, &id, &username)
 
 	switch {
 	case err == sql.ErrNoRows:

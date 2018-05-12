@@ -33,6 +33,6 @@ type Comment struct {
 
 // Like type
 type Like struct {
-	PostID string `json:"postID"`
+	PostID string `json:"post_id"`
 	User   string `json:"user"`
 }
