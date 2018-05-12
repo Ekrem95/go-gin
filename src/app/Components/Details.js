@@ -56,10 +56,10 @@ export default class Details extends Component {
                             onKeyUp={e => {
                                 if (e.keyCode === 13) {
                                     const text = this.refs.comment.value;
-                                    const postId = this.state.data.id.toString();
+                                    const post_id = this.state.data.id.toString();
                                     const sender = store.getState().user.user;
 
-                                    const pac = { text, postId, sender };
+                                    const pac = { text, post_id, sender };
 
                                     fetch('/comment', {
                                         method: 'post',
@@ -93,11 +93,11 @@ export default class Details extends Component {
                 <div className='likes'>
                     <button
                         onClick={() => {
-                            const postID = this.props.location.pathname
+                            const post_id = this.props.location.pathname
                                 .split('/')
                                 .pop();
                             const user = store.getState().user.user;
-                            const pac = { postID, user };
+                            const pac = { post_id, user };
 
                             fetch('/post_likes', {
                                 method: 'post',
