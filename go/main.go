@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	MySQL()
+	testSQLConnection()
 
 	r := router()
 
@@ -28,9 +28,9 @@ func router() *gin.Engine {
 	r.StaticFile("/favicon.ico", "../templates/favicon.ico")
 
 	// socketio
-	server, socketErr := socketio.NewServer(nil)
-	if socketErr != nil {
-		log.Fatal(socketErr)
+	server, err := socketio.NewServer(nil)
+	if err != nil {
+		log.Fatal(err)
 	}
 	server.On("connection", func(so socketio.Socket) {
 		log.Println("on connection")

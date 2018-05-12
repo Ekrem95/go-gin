@@ -30,7 +30,7 @@ type UserForm struct {
 
 func testRouter() *gin.Engine {
 	os.Setenv("ENV", "TEST")
-	MySQL()
+	testSQLConnection()
 
 	return router()
 }
@@ -57,7 +57,7 @@ func TestSignup(t *testing.T) {
 }
 
 func DeleteUser() {
-	_, err = db.Exec("delete from users where username=? limit 1", testUsername)
+	err := exec("delete from users where username=? limit 1", testUsername)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -290,7 +290,7 @@ func TestPostComment(t *testing.T) {
 	testRouter := testRouter()
 
 	var id string
-	error := db.QueryRow("select id from posts where title =? limit 1", testArticleTitle).Scan(&id)
+	error := queryRowScan("select id from posts where title ="+testArticleTitle+" limit 1", &id)
 	if error != nil {
 		t.Error(error)
 	}
@@ -314,7 +314,7 @@ func TestPostComment(t *testing.T) {
 }
 
 func DeletePost() {
-	_, err = db.Exec("delete from posts where title=?", testArticleTitle)
+	err := exec("delete from posts where title=?", testArticleTitle)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -324,7 +324,7 @@ func TestDeletePostByID(t *testing.T) {
 	defer DeletePost()
 	var id string
 	// var post Post
-	error := db.QueryRow("select id from posts where title =? limit 1", testArticleTitle).Scan(&id)
+	error := queryRowScan("select id from posts where title ="+testArticleTitle+" limit 1", &id)
 	if error != nil {
 		t.Error(error)
 	}

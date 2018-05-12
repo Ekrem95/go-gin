@@ -10,8 +10,9 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-var db *sql.DB
-var err error
+// var db *sql.DB
+// var err error
+var dsn string
 
 var smts = []string{
 	`
@@ -49,20 +50,67 @@ var smts = []string{
 	`,
 }
 
-// MySQL func
-func MySQL() {
-	// database := os.Getenv("mysql")
+func exec(smt string, args ...interface{}) error {
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
 
-	var dsn string
+	_, err = db.Exec(smt, args...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
+func query(smt string, args ...interface{}) (*sql.Rows, error) {
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	rows, err := db.Query(smt, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return rows, nil
+}
+
+func queryRowScan(smt string, dest ...interface{}) error {
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	err = db.QueryRow(smt).Scan(dest...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func testSQLConnection() {
 	if os.Getenv("ENV") == "TEST" {
 		dsn = "root:secret@/go_gin_test"
 	} else {
 		dsn = "root:secret@/go_gin"
 	}
 
-	db, err = sql.Open("mysql", dsn)
+	db, err := sql.Open("mysql", dsn)
 	if err != nil {
+		panic(err.Error())
+	}
+
+	// sql.DB should be long lived "defer" closes it once this function ends
+	defer db.Close()
+
+	// Test the connection to the database
+	if err = db.Ping(); err != nil {
 		panic(err.Error())
 	}
 
@@ -71,27 +119,15 @@ func MySQL() {
 			panic(err.Error())
 		}
 	}
-
-	// sql.DB should be long lived "defer" closes it once this function ends
-	// defer db.Close()
-
-	// Test the connection to the database
-	err = db.Ping()
-	if err != nil {
-		panic(err.Error())
-	}
-
 }
 
 // RedisGetMsgs func
 func RedisGetMsgs(c *gin.Context) {
-	conn, error := redis.Dial("tcp", ":6379")
-	if error != nil {
-		panic(error.Error())
+	conn, err := redis.Dial("tcp", ":6379")
+	if err != nil {
+		panic(err.Error())
 	}
 	defer conn.Close()
-
-	// var message *Message
 
 	// Grabs the entire users list into an []string named users
 	messages, _ := redis.Strings(conn.Do("LRANGE", "messagestest", 0, -1))
@@ -100,30 +136,6 @@ func RedisGetMsgs(c *gin.Context) {
 	// json.Unmarshal([]byte(messages[0]), &message)
 	// fmt.Println(unencoded.Name)
 
-	// var user User
-	//
-	// json.Unmarshal([]byte(users[0]), &user)
-	// if err == nil {
-	// 	fmt.Printf("%+v\n", user)
-	// 	fmt.Println(reflect.TypeOf(user))
-	// } else {
-	// 	fmt.Println(err)
-	// 	fmt.Printf("%+v\n", user)
-	// }
-	//
-	// fmt.Println(users[0])
-	// fmt.Println(reflect.TypeOf(users[0]))
-
-	// for _, v := range messages {
-	// 	// log.Printf("value at [%d]=%v", i, v)
-	// 	json.Unmarshal([]byte(v), &message)
-	// 	// fmt.Println(reflect.TypeOf(unencoded))
-	// 	// fmt.Println(unencoded.Password)
-	// 	fmt.Println("*****************************")
-	// 	fmt.Println(message)
-	// 	fmt.Println(reflect.TypeOf(message))
-	// }
-
 	c.JSON(200, gin.H{
 		"messages": messages,
 	})
@@ -131,9 +143,9 @@ func RedisGetMsgs(c *gin.Context) {
 
 // RedisSaveMsg func
 func RedisSaveMsg(msg *Message) {
-	conn, error := redis.Dial("tcp", ":6379")
-	if error != nil {
-		panic(error.Error())
+	conn, err := redis.Dial("tcp", ":6379")
+	if err != nil {
+		panic(err.Error())
 	}
 	defer conn.Close()
 
@@ -145,37 +157,4 @@ func RedisSaveMsg(msg *Message) {
 	//
 	conn.Do("LPUSH", "messagestest", encoded)
 	conn.Do("LTRIM", "messagestest", 0, 99)
-	//conn.Do("LPOP", "messagestest")
-
-	// var message *Message
-
-	// Grabs the entire users list into an []string named users
-	// messages, _ := redis.Strings(conn.Do("LRANGE", "messagestest", 0, -1))
-	// Grab one string value and convert it to type byte
-	// Then decode the data into unencoded
-	// json.Unmarshal([]byte(messages[0]), &message)
-	// fmt.Println(unencoded.Name)
-
-	// var user User
-	//
-	// json.Unmarshal([]byte(users[0]), &user)
-	// if err == nil {
-	// 	fmt.Printf("%+v\n", user)
-	// 	fmt.Println(reflect.TypeOf(user))
-	// } else {
-	// 	fmt.Println(err)
-	// 	fmt.Printf("%+v\n", user)
-	// }
-	//
-	// fmt.Println(users[0])
-	// fmt.Println(reflect.TypeOf(users[0]))
-
-	// for _, v := range messages {
-	// 	// log.Printf("value at [%d]=%v", i, v)
-	// 	json.Unmarshal([]byte(v), &message)
-	// 	// fmt.Println(reflect.TypeOf(unencoded))
-	// 	// fmt.Println(unencoded.Password)
-	// 	fmt.Println("*****************************")
-	// 	fmt.Println(message)
-	// }
 }
