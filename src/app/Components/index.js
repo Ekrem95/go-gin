@@ -11,6 +11,15 @@ import Edit from './Edit';
 import ChangePassword from './ChangePassword';
 
 export {
-  Home, Signup, Login, Nav, Talkie, Add,
-  Details, Upload, MyPosts, Edit, ChangePassword,
+    Home,
+    Signup,
+    Login,
+    Nav,
+    Talkie,
+    Add,
+    Details,
+    Upload,
+    MyPosts,
+    Edit,
+    ChangePassword
 };

@@ -4,127 +4,134 @@ import { store } from '../redux/reducers';
 import $ from 'jquery';
 
 export default class Talkie extends Component {
-  constructor() {
-    super();
-    this.sendMessage = this.sendMessage.bind(this);
-    this.state = {
-      messages: null,
-      val: '',
-      conn: false,
-    };
-  }
+    constructor() {
+        super();
+        this.sendMessage = this.sendMessage.bind(this);
+        this.state = {
+            messages: null,
+            val: '',
+            conn: false
+        };
+    }
 
-  componentWillMount() {
+    componentWillMount() {
+        this.jquery();
 
-    this.jquery();
+        fetch('/messages')
+            .then(r => r.json())
+            .then(res => {
+                let messages = [];
+                for (let i = res.messages.length - 1; i >= 0; i--) {
+                    messages.push(JSON.parse(res.messages[i]));
+                }
 
-    fetch('/messages')
-      .then(r => r.json())
-      .then(res => {
-        let messages = [];
-        for (let i = res.messages.length - 1; i >= 0; i--) {
-          messages.push(JSON.parse(res.messages[i]));
+                this.setState({ messages });
+            });
+    }
+
+    jquery() {
+        $(document).ready(() => {
+            $('#hide-chat').on('click', () => {
+                $('.talkie-box').fadeToggle();
+                $('#show-chat').fadeToggle();
+            });
+            $('#show-chat').on('click', () => {
+                $('.talkie-box').fadeToggle();
+                $('#show-chat').fadeToggle();
+                $('.bottom').animate(
+                    { scrollTop: $('.bottom').prop('scrollHeight') },
+                    1000
+                );
+
+                if (this.state.conn === false) {
+                    this.setState({ conn: true });
+                    this.getMessages();
+                }
+            });
+        });
+    }
+
+    getMessages() {
+        let socket = io.connect('/');
+
+        if (socket !== undefined) {
+            socket.on('dist', msg => {
+                const messages = this.state.messages || [];
+                messages.push(msg);
+                this.setState({ messages });
+            });
+        }
+    }
+
+    sendMessage() {
+        let socket = io.connect('/');
+
+        if (socket !== undefined) {
+            const username = store.getState().user.user;
+            socket.emit('msg', {
+                text: this.state.val,
+                time: Date.now().toString(),
+                sender: username
+            });
         }
 
-        this.setState({ messages });
-      });
-  }
-
-  jquery() {
-    $(document).ready(() => {
-        $('#hide-chat').on('click', () => {
-            $('.talkie-box').fadeToggle();
-            $('#show-chat').fadeToggle();
-          });
-        $('#show-chat').on('click', () => {
-            $('.talkie-box').fadeToggle();
-            $('#show-chat').fadeToggle();
-            $('.bottom').animate({ scrollTop: $('.bottom').prop('scrollHeight') }, 1000);
-
-            if (this.state.conn === false) {
-              this.setState({ conn: true });
-              this.getMessages();
-            }
-          });
-      });
-  }
-
-  getMessages() {
-    let socket = io.connect('/');
-
-    if (socket !== undefined) {
-      socket.on('dist', msg => {
-        const messages = this.state.messages || [];
-        messages.push(msg);
-        this.setState({ messages });
-      });
-    }
-  }
-
-  sendMessage() {
-    let socket = io.connect('/');
-
-    if (socket !== undefined) {
-      const username = store.getState().user.user;
-      socket.emit('msg', {
-        text: this.state.val,
-        time: Date.now().toString(),
-        sender: username,
-      });
+        $('.bottom').animate(
+            { scrollTop: $('.bottom').prop('scrollHeight') },
+            1000
+        );
     }
 
-    $('.bottom').animate({ scrollTop: $('.bottom').prop('scrollHeight') }, 1000);
-  }
-
-  render() {
-    return (
-      <div>
-      <div className="talkie-box">
-      <div className="talkie">
-        <div className="top">
-          <div>Messages</div>
-          <span id="hide-chat">Hide</span>
-        </div>
-        <div className="bottom">
-          {
-            this.state.messages &&
-            this.state.messages.map((m, i) => {
-              const first = new Date(Number(m.Time)).toString().slice(4, 10);
-              const second = new Date(Number(m.Time)).toString().slice(16, 21);
-              const message = (
-                <div className="message" key={i}>
-                  <div className="text">{m.Text}</div>
-                  <div className="details">
-                    <div>{`${first}, ${second}`}</div>
-                    <div>{m.Sender}</div>
-                  </div>
+    render() {
+        return (
+            <div>
+                <div className='talkie-box'>
+                    <div className='talkie'>
+                        <div className='top'>
+                            <div>Messages</div>
+                            <span id='hide-chat'>Hide</span>
+                        </div>
+                        <div className='bottom'>
+                            {this.state.messages &&
+                                this.state.messages.map((m, i) => {
+                                    const first = new Date(Number(m.Time))
+                                        .toString()
+                                        .slice(4, 10);
+                                    const second = new Date(Number(m.Time))
+                                        .toString()
+                                        .slice(16, 21);
+                                    const message = (
+                                        <div className='message' key={i}>
+                                            <div className='text'>{m.Text}</div>
+                                            <div className='details'>
+                                                <div
+                                                >{`${first}, ${second}`}</div>
+                                                <div>{m.Sender}</div>
+                                            </div>
+                                        </div>
+                                    );
+                                    return message;
+                                })}
+                        </div>
+                        <input
+                            id='chat'
+                            onChange={e => {
+                                this.setState({ val: e.target.value });
+                            }}
+                            onKeyDown={e => {
+                                if (
+                                    e.keyCode === 13 &&
+                                    this.state.val.length > 0
+                                ) {
+                                    this.sendMessage();
+                                    $('#chat').val('');
+                                    this.setState({ val: '' });
+                                }
+                            }}
+                        />
+                    </div>
                 </div>
-              );
-              return message;
-            })
-          }
-        </div>
-        <input
-          id="chat"
-          onChange={(e) => {
-            this.setState({ val: e.target.value });
-          }}
-
-          onKeyDown={(e) => {
-            if (e.keyCode === 13 &&
-              this.state.val.length > 0
-            ) {
-              this.sendMessage();
-              $('#chat').val('');
-              this.setState({ val: '' });
-            }
-          }}
-
-          />
-      </div>
-      </div>
-      <div id="show-chat">Chat</div>
-      </div>
-    );
-  }
+                <div id='show-chat'>Chat</div>
+            </div>
+        );
+    }
 }

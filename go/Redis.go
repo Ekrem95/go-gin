@@ -2,11 +2,11 @@ package main
 
 import (
 	"encoding/json"
-	_ "fmt"
-	"github.com/garyburd/redigo/redis"
-	"github.com/gin-gonic/gin"
 	_ "log"
 	_ "reflect"
+
+	"github.com/garyburd/redigo/redis"
+	"github.com/gin-gonic/gin"
 )
 
 // RedisGetMsgs func

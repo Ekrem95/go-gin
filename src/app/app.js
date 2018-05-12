@@ -6,36 +6,48 @@ import { store } from './redux/reducers';
 
 // import Home from './Components/Home';
 import {
-   Home, Signup, Login, Nav, Talkie, Add,
-   Details, Upload, MyPosts, Edit, ChangePassword,
- } from './Components';
+    Home,
+    Signup,
+    Login,
+    Nav,
+    Talkie,
+    Add,
+    Details,
+    Upload,
+    MyPosts,
+    Edit,
+    ChangePassword
+} from './Components';
 
 import style from './style.scss';
 
 class App extends Component {
-  render() {
-    return (
-      <Provider store={store}>
-        <BrowserRouter>
-          <div>
-          <Nav />
-          <Switch>
-            <Route exact path="/" component={Home} />
-            <Route path="/login" component={Login} />
-            <Route path="/signup" component={Signup} />
-            <Route path="/add" component={Add} />
-            <Route path="/p/:id" component={Details} />
-            <Route path="/upload" component={Upload} />
-            <Route path="/myposts" component={MyPosts} />
-            <Route path="/edit/:id" component={Edit} />
-            <Route path="/changepassword" component={ChangePassword} />
-          </Switch>
-          <Talkie />
-          </div>
-        </BrowserRouter>
-      </Provider>
-    );
-  }
+    render() {
+        return (
+            <Provider store={store}>
+                <BrowserRouter>
+                    <div>
+                        <Nav />
+                        <Switch>
+                            <Route exact path='/' component={Home} />
+                            <Route path='/login' component={Login} />
+                            <Route path='/signup' component={Signup} />
+                            <Route path='/add' component={Add} />
+                            <Route path='/p/:id' component={Details} />
+                            <Route path='/upload' component={Upload} />
+                            <Route path='/myposts' component={MyPosts} />
+                            <Route path='/edit/:id' component={Edit} />
+                            <Route
+                                path='/changepassword'
+                                component={ChangePassword}
+                            />
+                        </Switch>
+                        <Talkie />
+                    </div>
+                </BrowserRouter>
+            </Provider>
+        );
+    }
 }
 
 render(<App />, document.getElementById('app'));

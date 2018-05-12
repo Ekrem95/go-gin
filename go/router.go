@@ -24,7 +24,7 @@ func common(c *gin.Context) {
 func getUser(c *gin.Context) {
 	session := sessions.Default(c)
 	user := session.Get("user")
-	// fmt.Println(user)
+
 	c.JSON(http.StatusOK, gin.H{
 		"user": user,
 	})
@@ -44,6 +44,10 @@ func signup(c *gin.Context) {
 		var user string
 
 		err = db.QueryRow("SELECT username FROM users WHERE username=?", username).Scan(&user)
+
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		switch {
 		// Username is available
@@ -82,7 +86,6 @@ func signup(c *gin.Context) {
 }
 
 func login(c *gin.Context) {
-
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 
