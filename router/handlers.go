@@ -55,7 +55,7 @@ func signup(c *gin.Context) {
 		switch {
 		// Username is available
 		case err == sql.ErrNoRows:
-			err = db.Exec("INSERT INTO users(username, password) VALUES(?, ?)", username, hashedPassword)
+			_, err = db.Exec("INSERT INTO users(username, password) VALUES(?, ?)", username, hashedPassword)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": "Unable to Sign up.",
@@ -157,7 +157,7 @@ func addPost(c *gin.Context) {
 	defer c.Request.Body.Close()
 
 	if len(post.Title) > 0 && len(post.Description) > 0 && len(post.Src) > 0 {
-		err = db.Exec("INSERT INTO posts(title, description, src, posted_by) VALUES(?, ?, ?, ?)", post.Title, post.Description, post.Src, post.PostedBy)
+		res, err := db.Exec("INSERT INTO posts(title, description, src, posted_by) VALUES(?, ?, ?, ?)", post.Title, post.Description, post.Src, post.PostedBy)
 		if err != nil {
 			log.Fatal(err)
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -165,8 +165,10 @@ func addPost(c *gin.Context) {
 			})
 			return
 		}
+
+		id, _ := res.LastInsertId()
 		c.JSON(http.StatusOK, gin.H{
-			"done": true,
+			"id": id,
 		})
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -187,7 +189,7 @@ func editPost(c *gin.Context) {
 
 	id := c.Param("id")
 
-	err = db.Exec("update posts set title = (?), description = (?), src = (?) where id=?", post.Title, post.Description, post.Src, id)
+	_, err = db.Exec("update posts set title = (?), description = (?), src = (?) where id=?", post.Title, post.Description, post.Src, id)
 	if err != nil {
 		log.Fatal(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -291,7 +293,7 @@ func postComment(c *gin.Context) {
 
 	comment.Time = time.Now().Unix()
 
-	err = db.Exec("INSERT INTO comments(text, sender, post_id, time) VALUES(?, ?, ?, ?)", comment.Text, comment.Sender, comment.PostID, comment.Time)
+	_, err = db.Exec("INSERT INTO comments(text, sender, post_id, time) VALUES(?, ?, ?, ?)", comment.Text, comment.Sender, comment.PostID, comment.Time)
 	if err != nil {
 		log.Fatal(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -361,7 +363,7 @@ func deletePostByID(c *gin.Context) {
 		return
 	}
 
-	err := db.Exec("delete from posts where id=? and posted_by=? limit 1", id, user)
+	_, err := db.Exec("delete from posts where id=? and posted_by=? limit 1", id, user)
 	if err != nil {
 		log.Fatal(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -414,7 +416,7 @@ func changePassword(c *gin.Context) {
 		panic(error)
 	}
 
-	err = db.Exec("update users set password=(?) where username=(?)", hashedPassword, username)
+	_, err = db.Exec("update users set password=(?) where username=(?)", hashedPassword, username)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Unable to change password.",
@@ -445,7 +447,7 @@ func postLikes(c *gin.Context) {
 
 	switch {
 	case err == sql.ErrNoRows:
-		err = db.Exec("INSERT INTO post_likes (post_id, user) VALUES(?, ?)", like.PostID, like.User)
+		_, err = db.Exec("INSERT INTO post_likes (post_id, user) VALUES(?, ?)", like.PostID, like.User)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Unable to like.",
@@ -463,7 +465,7 @@ func postLikes(c *gin.Context) {
 		})
 		return
 	default:
-		err = db.Exec("delete from post_likes where post_id=? and user=? limit 1", like.PostID, like.User)
+		_, err = db.Exec("delete from post_likes where post_id=? and user=? limit 1", like.PostID, like.User)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Unable to dislike.",
@@ -474,7 +476,7 @@ func postLikes(c *gin.Context) {
 
 	// ****************************************************************
 
-	// err = db.Exec("insert into post_likes (post_id, user)  select * from (select " + postID + ", '" + user + "') as tmp where not exists ( select post_id, user from post_likes where post_id = " + postID + "  and user = '" + user + "' ) limit 1")
+	// _,err = db.Exec("insert into post_likes (post_id, user)  select * from (select " + postID + ", '" + user + "') as tmp where not exists ( select post_id, user from post_likes where post_id = " + postID + "  and user = '" + user + "' ) limit 1")
 	// if err != nil {
 	// 	log.Fatal(err)
 	// 	c.JSON(500, gin.H{

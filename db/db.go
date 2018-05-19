@@ -7,7 +7,6 @@ import (
 
 	"github.com/garyburd/redigo/redis"
 	"github.com/gin-gonic/gin"
-	_ "github.com/go-sql-driver/mysql"
 )
 
 // var db *sql.DB
@@ -50,20 +49,22 @@ var smts = []string{
 	`,
 }
 
-func Exec(smt string, args ...interface{}) error {
+// Exec ...
+func Exec(smt string, args ...interface{}) (sql.Result, error) {
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer db.Close()
 
-	_, err = db.Exec(smt, args...)
+	res, err := db.Exec(smt, args...)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return res, nil
 }
 
+// Query ...
 func Query(smt string, args ...interface{}) (*sql.Rows, error) {
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
@@ -79,6 +80,7 @@ func Query(smt string, args ...interface{}) (*sql.Rows, error) {
 	return rows, nil
 }
 
+// QueryRowScan ...
 func QueryRowScan(smt string, dest ...interface{}) error {
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {

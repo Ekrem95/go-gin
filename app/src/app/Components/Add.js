@@ -19,9 +19,7 @@ export default class Add extends Component {
         })
             .then(res => res.json())
             .then(res => {
-                if (res.done === true) {
-                    this.props.history.push('/');
-                }
+                if (res.id) this.props.history.push('/');
             });
     }
 

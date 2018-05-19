@@ -5,6 +5,7 @@ import (
 
 	"github.com/ekrem95/go-gin/db"
 	"github.com/ekrem95/go-gin/router"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {

@@ -62,7 +62,7 @@ func TestSignup(t *testing.T) {
 }
 
 func DeleteUser() {
-	err := db.Exec("delete from users where username=? limit 1", testUsername)
+	_, err := db.Exec("delete from users where username=? limit 1", testUsername)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -176,19 +176,49 @@ func TestChangePasswordFail(t *testing.T) {
 
 func TestGetArticle(t *testing.T) {
 	testRouter := testRouter()
+	title := "Lion's Head Caves Adventure"
 
-	articleID := 12 //Lion's Head Caves Adventure
+	// ----------------------
+	var post = db.Post{Title: title, Description: "Description", PostedBy: testUsername, Src: "src"}
 
-	url := fmt.Sprintf("/api/postbyid/%d", articleID)
+	data, _ := json.Marshal(post)
 
-	req, error := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("POST", "/add", bytes.NewBufferString(string(data)))
+	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Cookie", signinCookie)
 
-	if error != nil {
-		fmt.Println(error)
+	if err != nil {
+		fmt.Println(err)
 	}
 
 	resp := httptest.NewRecorder()
+
+	testRouter.ServeHTTP(resp, req)
+
+	assert.Equal(t, resp.Code, 200)
+
+	var res struct {
+		ID int `json:"id"`
+	}
+
+	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
+		log.Println(err)
+	}
+
+	// ----------------------
+
+	articleID := res.ID //Lion's Head Caves Adventure
+
+	url := fmt.Sprintf("/api/postbyid/%d", articleID)
+
+	req, err = http.NewRequest("GET", url, nil)
+	req.Header.Set("Cookie", signinCookie)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	resp = httptest.NewRecorder()
 
 	testRouter.ServeHTTP(resp, req)
 	assert.Equal(t, resp.Code, 200)
@@ -197,13 +227,13 @@ func TestGetArticle(t *testing.T) {
 		Data db.Post `json:"post"`
 	}
 	var p Data
-	error = json.NewDecoder(resp.Body).Decode(&p)
-	if error != nil {
-		fmt.Println(error)
+	err = json.NewDecoder(resp.Body).Decode(&p)
+	if err != nil {
+		fmt.Println(err)
 		return
 	}
 
-	assert.Equal(t, p.Data.Title, "Lion's Head Caves Adventure")
+	assert.Equal(t, p.Data.Title, title)
 }
 
 func TestArticleNotFound(t *testing.T) {
@@ -262,7 +292,7 @@ func TestGetArticles(t *testing.T) {
 
 }
 
-func TestCreateArticle(t *testing.T) {
+func TestAddArticle(t *testing.T) {
 	testRouter := testRouter()
 
 	var post db.Post
@@ -317,7 +347,7 @@ func TestPostComment(t *testing.T) {
 }
 
 func DeletePost() {
-	err := db.Exec("delete from posts where title=?", testArticleTitle)
+	_, err := db.Exec("delete from posts where title=?", testArticleTitle)
 	if err != nil {
 		log.Fatal(err)
 	}
