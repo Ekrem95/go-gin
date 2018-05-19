@@ -30,7 +30,9 @@ type UserForm struct {
 
 func testRouter() *gin.Engine {
 	os.Setenv("ENV", "TEST")
-	testSQLConnection()
+	if err := testSQLConnection(); err != nil {
+		log.Fatal(err)
+	}
 
 	return router()
 }

@@ -1,0 +1,26 @@
+version: '3'
+services:
+  redis:
+    container_name: redis.dev
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - "go-gin:/var/lib/redis"
+  database:
+    container_name: mariadb.dev
+    image: mariadb:latest
+    restart: always
+    ports:
+      - "3306:3306"
+    volumes:
+      - "go-gin:/var/lib/mariadb"
+    environment:
+      MYSQL_DATABASE: "go_gin"
+      MYSQL_USER: "root"
+      MYSQL_PASSWORD: "pass"
+      MYSQL_ROOT_PASSWORD: "pass"
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+volumes:
+  go-gin:

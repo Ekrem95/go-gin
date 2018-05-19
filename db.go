@@ -94,16 +94,16 @@ func queryRowScan(smt string, dest ...interface{}) error {
 	return nil
 }
 
-func testSQLConnection() {
+func testSQLConnection() error {
 	if os.Getenv("ENV") == "TEST" {
-		dsn = "root:secret@/go_gin_test"
+		dsn = "root:pass@/go_gin_test"
 	} else {
-		dsn = "root:secret@/go_gin"
+		dsn = "root:pass@/go_gin"
 	}
 
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		panic(err.Error())
+		return err
 	}
 
 	// sql.DB should be long lived "defer" closes it once this function ends
@@ -111,14 +111,16 @@ func testSQLConnection() {
 
 	// Test the connection to the database
 	if err = db.Ping(); err != nil {
-		panic(err.Error())
+		return err
 	}
 
 	for _, smt := range smts {
 		if _, err = db.Exec(smt); err != nil {
-			panic(err.Error())
+			return err
 		}
 	}
+
+	return nil
 }
 
 // RedisGetMsgs func

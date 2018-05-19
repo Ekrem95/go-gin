@@ -10,7 +10,9 @@ import (
 )
 
 func main() {
-	testSQLConnection()
+	if err := testSQLConnection(); err != nil {
+		log.Fatal(err)
+	}
 
 	r := router()
 
