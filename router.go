@@ -43,7 +43,9 @@ func signup(c *gin.Context) {
 
 		var user string
 
-		err := queryRowScan("SELECT username FROM users WHERE username="+username, &user)
+		smt := fmt.Sprintf("SELECT username FROM users WHERE username = '%s'", username)
+
+		err := queryRowScan(smt, &user)
 
 		if err != nil {
 			fmt.Println(err)
