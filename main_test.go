@@ -13,6 +13,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ekrem95/go-gin/router"
+
+	"github.com/ekrem95/go-gin/db"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
@@ -30,11 +33,11 @@ type UserForm struct {
 
 func testRouter() *gin.Engine {
 	os.Setenv("ENV", "TEST")
-	if err := testSQLConnection(); err != nil {
+	if err := db.TestSQLConnection(); err != nil {
 		log.Fatal(err)
 	}
 
-	return router()
+	return router.Default()
 }
 
 func TestSignup(t *testing.T) {
@@ -59,7 +62,7 @@ func TestSignup(t *testing.T) {
 }
 
 func DeleteUser() {
-	err := exec("delete from users where username=? limit 1", testUsername)
+	err := db.Exec("delete from users where username=? limit 1", testUsername)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,7 +71,7 @@ func DeleteUser() {
 func TestInvalidSignup(t *testing.T) {
 	testRouter := testRouter()
 
-	var form User
+	var form db.User
 
 	data, _ := json.Marshal(form)
 	req, error := http.NewRequest("POST", "/signup", bytes.NewBufferString(string(data)))
@@ -87,7 +90,7 @@ func TestInvalidSignup(t *testing.T) {
 func TestInvalidLogin(t *testing.T) {
 	testRouter := testRouter()
 
-	var form User
+	var form db.User
 
 	data, _ := json.Marshal(form)
 	req, error := http.NewRequest("POST", "/login", bytes.NewBufferString(string(data)))
@@ -191,7 +194,7 @@ func TestGetArticle(t *testing.T) {
 	assert.Equal(t, resp.Code, 200)
 
 	type Data struct {
-		Data Post `json:"post"`
+		Data db.Post `json:"post"`
 	}
 	var p Data
 	error = json.NewDecoder(resp.Body).Decode(&p)
@@ -225,15 +228,14 @@ func TestArticleNotFound(t *testing.T) {
 
 func TestGetArticles(t *testing.T) {
 	testRouter := testRouter()
-	// var post Post
 
 	url := fmt.Sprintf("/api/posts")
 
-	req, error := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", url, nil)
 	req.Header.Set("Cookie", signinCookie)
 
-	if error != nil {
-		fmt.Println(error)
+	if err != nil {
+		fmt.Println(err)
 	}
 
 	resp := httptest.NewRecorder()
@@ -242,13 +244,13 @@ func TestGetArticles(t *testing.T) {
 	assert.Equal(t, resp.Code, 200)
 
 	type Data struct {
-		Data []Post `json:"posts"`
+		Data []db.Post `json:"posts"`
 	}
 
 	var p Data
-	error = json.NewDecoder(resp.Body).Decode(&p)
-	if error != nil {
-		fmt.Println(error)
+	err = json.NewDecoder(resp.Body).Decode(&p)
+	if err != nil {
+		fmt.Println(err)
 		return
 	}
 
@@ -261,10 +263,9 @@ func TestGetArticles(t *testing.T) {
 }
 
 func TestCreateArticle(t *testing.T) {
-	// defer DeletePost()
 	testRouter := testRouter()
 
-	var post Post
+	var post db.Post
 
 	post.Title = testArticleTitle
 	post.Description = "Test description"
@@ -292,12 +293,12 @@ func TestPostComment(t *testing.T) {
 	testRouter := testRouter()
 
 	var id string
-	error := queryRowScan("select id from posts where title ="+testArticleTitle+" limit 1", &id)
+	error := db.QueryRowScan("select id from posts where title ='"+testArticleTitle+"' limit 1", &id)
 	if error != nil {
 		t.Error(error)
 	}
 
-	comment := &Comment{Text: "Comment", PostID: id, Sender: testUsername}
+	comment := &db.Comment{Text: "Comment", PostID: id, Sender: testUsername}
 
 	data, _ := json.Marshal(comment)
 
@@ -316,7 +317,7 @@ func TestPostComment(t *testing.T) {
 }
 
 func DeletePost() {
-	err := exec("delete from posts where title=?", testArticleTitle)
+	err := db.Exec("delete from posts where title=?", testArticleTitle)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -326,7 +327,7 @@ func TestDeletePostByID(t *testing.T) {
 	defer DeletePost()
 	var id string
 	// var post Post
-	error := queryRowScan("select id from posts where title ="+testArticleTitle+" limit 1", &id)
+	error := db.QueryRowScan("select id from posts where title ='"+testArticleTitle+" 'limit 1", &id)
 	if error != nil {
 		t.Error(error)
 	}
@@ -356,7 +357,7 @@ func TestCreateInvalidArticle(t *testing.T) {
 	defer DeleteUser()
 	testRouter := testRouter()
 
-	var post Post
+	var post db.Post
 
 	post.Title = testArticleTitle
 

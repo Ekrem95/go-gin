@@ -1,4 +1,4 @@
-package main
+package db
 
 import (
 	"database/sql"
@@ -50,7 +50,7 @@ var smts = []string{
 	`,
 }
 
-func exec(smt string, args ...interface{}) error {
+func Exec(smt string, args ...interface{}) error {
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return err
@@ -64,7 +64,7 @@ func exec(smt string, args ...interface{}) error {
 	return nil
 }
 
-func query(smt string, args ...interface{}) (*sql.Rows, error) {
+func Query(smt string, args ...interface{}) (*sql.Rows, error) {
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func query(smt string, args ...interface{}) (*sql.Rows, error) {
 	return rows, nil
 }
 
-func queryRowScan(smt string, dest ...interface{}) error {
+func QueryRowScan(smt string, dest ...interface{}) error {
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return err
@@ -94,7 +94,8 @@ func queryRowScan(smt string, dest ...interface{}) error {
 	return nil
 }
 
-func testSQLConnection() error {
+// TestSQLConnection ...
+func TestSQLConnection() error {
 	if os.Getenv("ENV") == "TEST" {
 		dsn = "root:pass@/go_gin_test"
 	} else {

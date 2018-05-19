@@ -1,4 +1,4 @@
-package main
+package router
 
 import (
 	"database/sql"
@@ -10,6 +10,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/ekrem95/go-gin/db"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -45,7 +46,7 @@ func signup(c *gin.Context) {
 
 		smt := fmt.Sprintf("SELECT username FROM users WHERE username = '%s'", username)
 
-		err := queryRowScan(smt, &user)
+		err := db.QueryRowScan(smt, &user)
 
 		if err != nil {
 			fmt.Println(err)
@@ -54,7 +55,7 @@ func signup(c *gin.Context) {
 		switch {
 		// Username is available
 		case err == sql.ErrNoRows:
-			err = exec("INSERT INTO users(username, password) VALUES(?, ?)", username, hashedPassword)
+			err = db.Exec("INSERT INTO users(username, password) VALUES(?, ?)", username, hashedPassword)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": "Unable to Sign up.",
@@ -100,7 +101,7 @@ func login(c *gin.Context) {
 		// If it exists grab the password for validation
 		smt := fmt.Sprintf("SELECT username, password FROM users WHERE username = '%s'", username)
 
-		err := queryRowScan(smt, &databaseUsername, &databasePassword)
+		err := db.QueryRowScan(smt, &databaseUsername, &databasePassword)
 		// If not then redirect to the login page
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
@@ -147,7 +148,7 @@ func logout(c *gin.Context) {
 }
 
 func addPost(c *gin.Context) {
-	var post Post
+	var post db.Post
 	decoder := json.NewDecoder(c.Request.Body)
 	err := decoder.Decode(&post)
 	if err != nil {
@@ -156,7 +157,7 @@ func addPost(c *gin.Context) {
 	defer c.Request.Body.Close()
 
 	if len(post.Title) > 0 && len(post.Description) > 0 && len(post.Src) > 0 {
-		err = exec("INSERT INTO posts(title, description, src, posted_by) VALUES(?, ?, ?, ?)", post.Title, post.Description, post.Src, post.PostedBy)
+		err = db.Exec("INSERT INTO posts(title, description, src, posted_by) VALUES(?, ?, ?, ?)", post.Title, post.Description, post.Src, post.PostedBy)
 		if err != nil {
 			log.Fatal(err)
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -176,7 +177,7 @@ func addPost(c *gin.Context) {
 }
 
 func editPost(c *gin.Context) {
-	var post Post
+	var post db.Post
 	decoder := json.NewDecoder(c.Request.Body)
 	err := decoder.Decode(&post)
 	if err != nil {
@@ -186,7 +187,7 @@ func editPost(c *gin.Context) {
 
 	id := c.Param("id")
 
-	err = exec("update posts set title = (?), description = (?), src = (?) where id=?", post.Title, post.Description, post.Src, id)
+	err = db.Exec("update posts set title = (?), description = (?), src = (?) where id=?", post.Title, post.Description, post.Src, id)
 	if err != nil {
 		log.Fatal(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -201,10 +202,10 @@ func editPost(c *gin.Context) {
 }
 
 func getPosts(c *gin.Context) {
-	var posts []Post
-	var post Post
+	var posts []db.Post
+	var post db.Post
 
-	rows, err := query("select id, title, src, description, likes from posts")
+	rows, err := db.Query("select id, title, src, description, likes from posts")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -230,8 +231,8 @@ func getPosts(c *gin.Context) {
 
 func getPostByID(c *gin.Context) {
 	id := c.Param("id")
-	var post Post
-	error := queryRowScan("select id, title, src, description, likes from posts where id = "+id, &post.ID, &post.Title, &post.Src, &post.Description, &post.Likes)
+	var post db.Post
+	error := db.QueryRowScan("select id, title, src, description, likes from posts where id = "+id, &post.ID, &post.Title, &post.Src, &post.Description, &post.Likes)
 
 	if error != nil {
 		if error == sql.ErrNoRows {
@@ -256,7 +257,7 @@ func getPostsByUsername(c *gin.Context) {
 	var id, title string
 	posts := map[string]string{}
 
-	rows, error := query("select id, title from posts where posted_by=?", name)
+	rows, error := db.Query("select id, title from posts where posted_by=?", name)
 	if error != nil {
 		log.Fatal(error)
 	}
@@ -280,7 +281,7 @@ func getPostsByUsername(c *gin.Context) {
 }
 
 func postComment(c *gin.Context) {
-	var comment Comment
+	var comment db.Comment
 	decoder := json.NewDecoder(c.Request.Body)
 	err := decoder.Decode(&comment)
 	if err != nil {
@@ -290,7 +291,7 @@ func postComment(c *gin.Context) {
 
 	comment.Time = time.Now().Unix()
 
-	err = exec("INSERT INTO comments(text, sender, post_id, time) VALUES(?, ?, ?, ?)", comment.Text, comment.Sender, comment.PostID, comment.Time)
+	err = db.Exec("INSERT INTO comments(text, sender, post_id, time) VALUES(?, ?, ?, ?)", comment.Text, comment.Sender, comment.PostID, comment.Time)
 	if err != nil {
 		log.Fatal(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -304,11 +305,11 @@ func postComment(c *gin.Context) {
 }
 
 func getCommentsByID(c *gin.Context) {
-	var comments []Comment
-	var comment Comment
+	var comments []db.Comment
+	var comment db.Comment
 	id := c.Param("id")
 
-	rows, error := query("select text, sender, post_id, time from comments where post_id=?", id)
+	rows, error := db.Query("select text, sender, post_id, time from comments where post_id=?", id)
 	if error != nil {
 		log.Fatal(error)
 	}
@@ -360,7 +361,7 @@ func deletePostByID(c *gin.Context) {
 		return
 	}
 
-	err := exec("delete from posts where id=? and posted_by=? limit 1", id, user)
+	err := db.Exec("delete from posts where id=? and posted_by=? limit 1", id, user)
 	if err != nil {
 		log.Fatal(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -390,7 +391,7 @@ func changePassword(c *gin.Context) {
 
 	smt := fmt.Sprintf("SELECT password FROM users WHERE username= '%s'", username.(string))
 
-	err := queryRowScan(smt, &password)
+	err := db.QueryRowScan(smt, &password)
 
 	if err != nil {
 		log.Fatal(err)
@@ -413,7 +414,7 @@ func changePassword(c *gin.Context) {
 		panic(error)
 	}
 
-	err = exec("update users set password=(?) where username=(?)", hashedPassword, username)
+	err = db.Exec("update users set password=(?) where username=(?)", hashedPassword, username)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Unable to change password.",
@@ -427,7 +428,7 @@ func changePassword(c *gin.Context) {
 }
 
 func postLikes(c *gin.Context) {
-	var like Like
+	var like db.Like
 	decoder := json.NewDecoder(c.Request.Body)
 	error := decoder.Decode(&like)
 	if error != nil {
@@ -440,11 +441,11 @@ func postLikes(c *gin.Context) {
 
 	smt := fmt.Sprintf("SELECT post_id, user FROM post_likes WHERE post_id= '%s' and user= '%s'", like.PostID, like.User)
 
-	err := queryRowScan(smt, &id, &username)
+	err := db.QueryRowScan(smt, &id, &username)
 
 	switch {
 	case err == sql.ErrNoRows:
-		err = exec("INSERT INTO post_likes (post_id, user) VALUES(?, ?)", like.PostID, like.User)
+		err = db.Exec("INSERT INTO post_likes (post_id, user) VALUES(?, ?)", like.PostID, like.User)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Unable to like.",
@@ -462,7 +463,7 @@ func postLikes(c *gin.Context) {
 		})
 		return
 	default:
-		err = exec("delete from post_likes where post_id=? and user=? limit 1", like.PostID, like.User)
+		err = db.Exec("delete from post_likes where post_id=? and user=? limit 1", like.PostID, like.User)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Unable to dislike.",
@@ -473,7 +474,7 @@ func postLikes(c *gin.Context) {
 
 	// ****************************************************************
 
-	// err = exec("insert into post_likes (post_id, user)  select * from (select " + postID + ", '" + user + "') as tmp where not exists ( select post_id, user from post_likes where post_id = " + postID + "  and user = '" + user + "' ) limit 1")
+	// err = db.Exec("insert into post_likes (post_id, user)  select * from (select " + postID + ", '" + user + "') as tmp where not exists ( select post_id, user from post_likes where post_id = " + postID + "  and user = '" + user + "' ) limit 1")
 	// if err != nil {
 	// 	log.Fatal(err)
 	// 	c.JSON(500, gin.H{
@@ -492,7 +493,7 @@ func getLikes(c *gin.Context) {
 	var user string
 	var users []string
 
-	rows, error := query("select user from post_likes where post_id=?", id)
+	rows, error := db.Query("select user from post_likes where post_id=?", id)
 	if error != nil {
 		log.Fatal(error)
 	}
