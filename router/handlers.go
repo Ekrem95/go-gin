@@ -159,7 +159,6 @@ func addPost(c *gin.Context) {
 	if len(post.Title) > 0 && len(post.Description) > 0 && len(post.Src) > 0 {
 		res, err := db.Exec("INSERT INTO posts(title, description, src, posted_by) VALUES(?, ?, ?, ?)", post.Title, post.Description, post.Src, post.PostedBy)
 		if err != nil {
-			log.Fatal(err)
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Unable to add.",
 			})
@@ -191,7 +190,6 @@ func editPost(c *gin.Context) {
 
 	_, err = db.Exec("update posts set title = (?), description = (?), src = (?) where id=?", post.Title, post.Description, post.Src, id)
 	if err != nil {
-		log.Fatal(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Unable to edit.",
 		})
@@ -209,21 +207,21 @@ func getPosts(c *gin.Context) {
 
 	rows, err := db.Query("select id, title, src, description, likes from posts")
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		err = rows.Scan(&post.ID, &post.Title, &post.Src, &post.Description, &post.Likes)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 
 		posts = append(posts, post)
 	}
 	err = rows.Err()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -234,16 +232,16 @@ func getPosts(c *gin.Context) {
 func getPostByID(c *gin.Context) {
 	id := c.Param("id")
 	var post db.Post
-	error := db.QueryRowScan("select id, title, src, description, likes from posts where id = "+id, &post.ID, &post.Title, &post.Src, &post.Description, &post.Likes)
+	err := db.QueryRowScan("select id, title, src, description, likes from posts where id = "+id, &post.ID, &post.Title, &post.Src, &post.Description, &post.Likes)
 
-	if error != nil {
-		if error == sql.ErrNoRows {
+	if err != nil {
+		if err == sql.ErrNoRows {
 			c.JSON(http.StatusNotFound, gin.H{
 				"post": nil,
 			})
 			return
 		}
-		log.Fatal(error)
+		log.Println(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"post": nil,
 		})
@@ -259,22 +257,22 @@ func getPostsByUsername(c *gin.Context) {
 	var id, title string
 	posts := map[string]string{}
 
-	rows, error := db.Query("select id, title from posts where posted_by=?", name)
-	if error != nil {
-		log.Fatal(error)
+	rows, err := db.Query("select id, title from posts where posted_by=?", name)
+	if err != nil {
+		panic(err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		error := rows.Scan(&id, &title)
-		if error != nil {
-			log.Fatal(error)
+		err = rows.Scan(&id, &title)
+		if err != nil {
+			panic(err)
 		}
 		posts[id] = title
 	}
-	err := rows.Err()
+	err = rows.Err()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -295,7 +293,6 @@ func postComment(c *gin.Context) {
 
 	_, err = db.Exec("INSERT INTO comments(text, sender, post_id, time) VALUES(?, ?, ?, ?)", comment.Text, comment.Sender, comment.PostID, comment.Time)
 	if err != nil {
-		log.Fatal(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Unable to add comment.",
 		})
@@ -311,23 +308,23 @@ func getCommentsByID(c *gin.Context) {
 	var comment db.Comment
 	id := c.Param("id")
 
-	rows, error := db.Query("select text, sender, post_id, time from comments where post_id=?", id)
-	if error != nil {
-		log.Fatal(error)
+	rows, err := db.Query("select text, sender, post_id, time from comments where post_id=?", id)
+	if err != nil {
+		panic(err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		error := rows.Scan(&comment.Text, &comment.Sender, &comment.PostID, &comment.Time)
-		if error != nil {
-			log.Fatal(error)
+		err = rows.Scan(&comment.Text, &comment.Sender, &comment.PostID, &comment.Time)
+		if err != nil {
+			panic(err)
 		}
 
 		comments = append(comments, comment)
 	}
-	err := rows.Err()
+	err = rows.Err()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -365,7 +362,6 @@ func deletePostByID(c *gin.Context) {
 
 	_, err := db.Exec("delete from posts where id=? and posted_by=? limit 1", id, user)
 	if err != nil {
-		log.Fatal(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"err": "Unable to delete post.",
 		})
@@ -396,7 +392,6 @@ func changePassword(c *gin.Context) {
 	err := db.QueryRowScan(smt, &password)
 
 	if err != nil {
-		log.Fatal(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"err": "Internal Server Error",
 		})
@@ -478,7 +473,7 @@ func postLikes(c *gin.Context) {
 
 	// _,err = db.Exec("insert into post_likes (post_id, user)  select * from (select " + postID + ", '" + user + "') as tmp where not exists ( select post_id, user from post_likes where post_id = " + postID + "  and user = '" + user + "' ) limit 1")
 	// if err != nil {
-	// 	log.Fatal(err)
+	// 	panic(err)
 	// 	c.JSON(500, gin.H{
 	// 		"error": "Unable to add.",
 	// 	})
@@ -495,23 +490,23 @@ func getLikes(c *gin.Context) {
 	var user string
 	var users []string
 
-	rows, error := db.Query("select user from post_likes where post_id=?", id)
-	if error != nil {
-		log.Fatal(error)
+	rows, err := db.Query("select user from post_likes where post_id=?", id)
+	if err != nil {
+		panic(err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		error := rows.Scan(&user)
-		if error != nil {
-			log.Fatal(error)
+		err = rows.Scan(&user)
+		if err != nil {
+			panic(err)
 		}
 
 		users = append(users, user)
 	}
-	err := rows.Err()
+	err = rows.Err()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
