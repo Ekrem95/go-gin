@@ -47,40 +47,26 @@ func signup(c *gin.Context) {
 		return
 	}
 
-	hashedPassword, error := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if error != nil {
-		panic(error)
-	}
-
-	var user string
-	smt := fmt.Sprintf("SELECT username FROM users WHERE username = '%s'", username)
-	err := db.QueryRowScan(smt, &user)
-
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
 	}
 
-	switch {
-	// Username is available
-	case err == sql.ErrNoRows:
-		if _, err = db.Exec(
-			"INSERT INTO users(username, password) VALUES(?, ?)",
-			username, hashedPassword); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Unable to Sign up.",
-			})
-			return
-		}
-
-		setSession(c, "user", username, 0)
-		c.JSON(http.StatusOK, gin.H{"success": true, "user": username})
+	var user db.User
+	if exists := user.Exists(username); exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Username already exists"})
 		return
-	case err != nil:
+	}
+
+	if _, err = db.Exec(
+		"INSERT INTO users(username, password) VALUES(?, ?)",
+		username, hashedPassword); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Error"})
 		return
-	default:
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Username already exists"})
 	}
+
+	setSession(c, "user", username, 0)
+	c.JSON(http.StatusOK, gin.H{"success": true, "user": username})
 }
 
 func login(c *gin.Context) {
