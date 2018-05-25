@@ -179,7 +179,7 @@ func TestGetArticle(t *testing.T) {
 	title := "Lion's Head Caves Adventure"
 
 	// ----------------------
-	var post = db.Post{Title: title, Description: "Description", PostedBy: testUsername, Src: "src"}
+	var post = db.Post{Title: title, Description: "Description", PostedBy: testUsername, Src: "src.co"}
 
 	data, _ := json.Marshal(post)
 
@@ -278,8 +278,7 @@ func TestGetArticles(t *testing.T) {
 	}
 
 	var p Data
-	err = json.NewDecoder(resp.Body).Decode(&p)
-	if err != nil {
+	if err = json.NewDecoder(resp.Body).Decode(&p); err != nil {
 		fmt.Println(err)
 		return
 	}
