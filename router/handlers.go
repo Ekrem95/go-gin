@@ -61,7 +61,7 @@ func signup(c *gin.Context) {
 	if _, err = db.Exec(
 		"INSERT INTO users(username, password) VALUES(?, ?)",
 		username, hashedPassword); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Error"})
+		c.JSON(http.StatusInternalServerError, errors.Internal)
 		return
 	}
 
@@ -110,8 +110,7 @@ func logout(c *gin.Context) {
 func addPost(c *gin.Context) {
 	var post db.Post
 	decoder := json.NewDecoder(c.Request.Body)
-	err := decoder.Decode(&post)
-	if err != nil {
+	if err := decoder.Decode(&post); err != nil {
 		panic(err)
 	}
 	defer c.Request.Body.Close()
@@ -123,7 +122,7 @@ func addPost(c *gin.Context) {
 	res, err := db.Exec(
 		"INSERT INTO posts(title, description, src, posted_by) VALUES(?, ?, ?, ?)", post.Title, post.Description, post.Src, post.PostedBy)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to add."})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to add"})
 		return
 	}
 
@@ -184,7 +183,7 @@ func getPostByID(c *gin.Context) {
 			return
 		}
 		log.Println(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Error"})
+		c.JSON(http.StatusInternalServerError, errors.Internal)
 		return
 	}
 
@@ -227,9 +226,7 @@ func postComment(c *gin.Context) {
 	comment.Time = time.Now().Unix()
 
 	if _, err := db.Exec("INSERT INTO comments(text, sender, post_id, time) VALUES(?, ?, ?, ?)", comment.Text, comment.Sender, comment.PostID, comment.Time); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Unable to add comment.",
-		})
+		c.JSON(http.StatusInternalServerError, errors.Internal)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"done": true})
@@ -277,19 +274,17 @@ func uploadFile(c *gin.Context) {
 }
 
 func deletePostByID(c *gin.Context) {
-	id := c.PostForm("id")
+	postID := c.PostForm("id")
 	user := c.PostForm("user")
 	sessionUser := sessions.Default(c).Get("user")
 
 	if user != sessionUser {
-		c.JSON(http.StatusOK, gin.H{"err": "Unable to delete post."})
+		c.JSON(http.StatusUnauthorized, errors.Unauthorized)
 		return
 	}
 
-	if _, err := db.Exec("delete from posts where id=? and posted_by=? limit 1", id, user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"err": "Unable to delete post.",
-		})
+	if _, err := db.Exec("delete from posts where id=? and posted_by=? limit 1", postID, user); err != nil {
+		c.JSON(http.StatusInternalServerError, errors.Internal)
 		return
 	}
 
@@ -302,7 +297,7 @@ func changePassword(c *gin.Context) {
 	username := sessions.Default(c).Get("user")
 
 	if username == nil || len(current) < 6 || len(newPassword) < 6 {
-		c.JSON(http.StatusBadRequest, gin.H{"err": "Bad Request"})
+		c.JSON(http.StatusBadRequest, errors.BadRequest)
 		return
 	}
 
@@ -311,15 +306,13 @@ func changePassword(c *gin.Context) {
 	smt := fmt.Sprintf("SELECT password FROM users WHERE username= '%s'", username.(string))
 
 	if err := db.QueryRowScan(smt, &password); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"err": "Internal Server Error",
-		})
+		c.JSON(http.StatusInternalServerError, errors.Internal)
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword(
 		[]byte(password), []byte(current)); err != nil {
-		c.JSON(http.StatusOK, gin.H{"err": "Passwords do not match"})
+		c.JSON(http.StatusBadRequest, gin.H{"err": "Passwords do not match"})
 		return
 	}
 
@@ -329,7 +322,7 @@ func changePassword(c *gin.Context) {
 	}
 
 	if _, err := db.Exec("update users set password=(?) where username=(?)", hashedPassword, username); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Error"})
+		c.JSON(http.StatusInternalServerError, errors.Internal)
 		return
 	}
 
@@ -355,20 +348,18 @@ func postLikes(c *gin.Context) {
 	case err == sql.ErrNoRows:
 		_, err = db.Exec("INSERT INTO post_likes (post_id, user) VALUES(?, ?)", like.PostID, like.User)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Error"})
+			c.JSON(http.StatusInternalServerError, errors.Internal)
 			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{"success": true})
 		return
 	case err != nil:
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Error"})
+		c.JSON(http.StatusInternalServerError, errors.Internal)
 		return
 	default:
 		if _, err = db.Exec("delete from post_likes where post_id=? and user=? limit 1", like.PostID, like.User); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Internal Error",
-			})
+			c.JSON(http.StatusInternalServerError, errors.Internal)
 			return
 		}
 	}
