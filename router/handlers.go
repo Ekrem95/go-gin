@@ -108,19 +108,17 @@ func logout(c *gin.Context) {
 }
 
 func addPost(c *gin.Context) {
-	var post db.Post
-	decoder := json.NewDecoder(c.Request.Body)
-	if err := decoder.Decode(&post); err != nil {
-		panic(err)
-	}
-	defer c.Request.Body.Close()
+	title := c.PostForm("title")
+	src := c.PostForm("src")
+	description := c.PostForm("description")
+	by := c.PostForm("posted_by")
 
-	if len(post.Title) < 1 || len(post.Description) < 5 || len(post.Src) < 5 {
+	if len(title) < 1 || len(description) < 5 || len(src) < 5 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad Request"})
 		return
 	}
 	res, err := db.Exec(
-		"INSERT INTO posts(title, description, src, posted_by) VALUES(?, ?, ?, ?)", post.Title, post.Description, post.Src, post.PostedBy)
+		"INSERT INTO posts(title, description, src, posted_by) VALUES(?, ?, ?, ?)", title, description, src, by)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to add"})
 		return
@@ -216,16 +214,12 @@ func getPostsByUsername(c *gin.Context) {
 }
 
 func postComment(c *gin.Context) {
-	var comment db.Comment
-	decoder := json.NewDecoder(c.Request.Body)
-	if err := decoder.Decode(&comment); err != nil {
-		panic(err)
-	}
-	defer c.Request.Body.Close()
+	text := c.PostForm("text")
+	postID := c.PostForm("post_id")
+	sender := c.PostForm("sender")
+	time := time.Now().Unix()
 
-	comment.Time = time.Now().Unix()
-
-	if _, err := db.Exec("INSERT INTO comments(text, sender, post_id, time) VALUES(?, ?, ?, ?)", comment.Text, comment.Sender, comment.PostID, comment.Time); err != nil {
+	if _, err := db.Exec("INSERT INTO comments(text, sender, post_id, time) VALUES(?, ?, ?, ?)", text, sender, postID, time); err != nil {
 		c.JSON(http.StatusInternalServerError, errors.Internal)
 		return
 	}

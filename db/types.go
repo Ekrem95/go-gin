@@ -20,7 +20,7 @@ type Post struct {
 	Src         string `json:"src"`
 	Description string `json:"description"`
 	Likes       int    `json:"likes"`
-	PostedBy    string `json:"postedBy"`
+	PostedBy    string `json:"posted_by"`
 }
 
 // Comment type

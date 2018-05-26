@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -16,11 +15,11 @@ import (
 	"github.com/ekrem95/go-gin/router"
 
 	"github.com/ekrem95/go-gin/db"
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
 
 var active bool
+var testRouter = router.Default()
 var signinCookie string
 var testUsername = "test"
 var testPassword = "123456"
@@ -72,97 +71,89 @@ func setup() {
 	}
 }
 
-func testRouter() *gin.Engine {
-	setup()
-
-	return router.Default()
+type Request struct {
+	method    string
+	addr      string
+	form      url.Values
+	setCookie string
 }
 
-func TestSignup(t *testing.T) {
-	testRouter := testRouter()
-
-	form := url.Values{}
-	form.Add("username", testUsername)
-	form.Add("password", testPassword)
-
-	req, error := http.NewRequest("POST", "/signup", strings.NewReader(form.Encode()))
-	req.PostForm = form
+func request(r Request) (*httptest.ResponseRecorder, error) {
+	req, err := http.NewRequest(r.method, r.addr, strings.NewReader(r.form.Encode()))
+	if err != nil {
+		return nil, err
+	}
+	req.PostForm = r.form
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	if error != nil {
-		fmt.Println(error)
+	if r.setCookie != "" {
+		req.Header.Set("Cookie", signinCookie)
 	}
 
 	resp := httptest.NewRecorder()
 
 	testRouter.ServeHTTP(resp, req)
+
+	return resp, nil
+}
+
+func TestSignup(t *testing.T) {
+	setup()
+
+	form := url.Values{}
+	form.Add("username", testUsername)
+	form.Add("password", testPassword)
+
+	resp, err := request(Request{"POST", "/signup", form, ""})
+	if err != nil {
+		t.Error(err)
+	}
+
 	assert.Equal(t, resp.Code, 200)
 }
 
 func TestInvalidSignup(t *testing.T) {
-	testRouter := testRouter()
+	setup()
 
-	var form db.User
-
-	data, _ := json.Marshal(form)
-	req, error := http.NewRequest("POST", "/signup", bytes.NewBufferString(string(data)))
-	req.Header.Set("Content-Type", "application/json")
-
-	if error != nil {
-		fmt.Println(error)
+	form := url.Values{}
+	resp, err := request(Request{"POST", "/signup", form, ""})
+	if err != nil {
+		t.Error(err)
 	}
 
-	resp := httptest.NewRecorder()
-
-	testRouter.ServeHTTP(resp, req)
-	assert.Equal(t, resp.Code, 400) //406
+	assert.Equal(t, resp.Code, 400)
 }
 
 func TestInvalidLogin(t *testing.T) {
-	testRouter := testRouter()
+	setup()
 
-	var form db.User
-
-	data, _ := json.Marshal(form)
-	req, error := http.NewRequest("POST", "/login", bytes.NewBufferString(string(data)))
-	req.Header.Set("Content-Type", "application/json")
-
-	if error != nil {
-		fmt.Println(error)
+	form := url.Values{}
+	resp, err := request(Request{"POST", "/login", form, ""})
+	if err != nil {
+		t.Error(err)
 	}
 
-	resp := httptest.NewRecorder()
-
-	testRouter.ServeHTTP(resp, req)
-	assert.Equal(t, resp.Code, 400) //406
+	assert.Equal(t, resp.Code, 400)
 }
 
 func TestLogin(t *testing.T) {
-	testRouter := testRouter()
+	setup()
 
 	form := url.Values{}
 	form.Add("username", testUsername)
 	form.Add("password", testPassword)
 
-	req, error := http.NewRequest("POST", "/login", strings.NewReader(form.Encode()))
-	req.PostForm = form
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	if error != nil {
-		fmt.Println(error)
+	resp, err := request(Request{"POST", "/login", form, ""})
+	if err != nil {
+		t.Error(err)
 	}
 
-	resp := httptest.NewRecorder()
-
-	testRouter.ServeHTTP(resp, req)
-
 	signinCookie = resp.Header().Get("Set-Cookie")
-
 	assert.Equal(t, resp.Code, 200)
 }
 
 func TestChangePassword(t *testing.T) {
-	testRouter := testRouter()
+	setup()
 
 	form := url.Values{}
 	form.Add("current", testPassword)
@@ -184,47 +175,33 @@ func TestChangePassword(t *testing.T) {
 }
 
 func TestChangePasswordFail(t *testing.T) {
-	testRouter := testRouter()
+	setup()
 
 	form := url.Values{}
 	form.Add("current", testPassword)
 	form.Add("newPassword", "newPassword")
 
-	req, error := http.NewRequest("POST", "/changepassword", strings.NewReader(form.Encode()))
-	req.PostForm = form
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	// req.Header.Set("Cookie", signinCookie)
-
-	if error != nil {
-		fmt.Println(error)
+	resp, err := request(Request{"POST", "/changepassword", form, ""})
+	if err != nil {
+		t.Error(err)
 	}
-
-	resp := httptest.NewRecorder()
-
-	testRouter.ServeHTTP(resp, req)
 	assert.Equal(t, resp.Code, 400)
 }
 
 func TestGetArticle(t *testing.T) {
-	testRouter := testRouter()
+	setup()
 	title := "Lion's Head Caves Adventure"
 
-	// ----------------------
-	var post = db.Post{Title: title, Description: "Description", PostedBy: testUsername, Src: "src.co"}
+	form := url.Values{}
+	form.Add("title", title)
+	form.Add("src", "src.co")
+	form.Add("description", "Description")
+	form.Add("posted_by", testUsername)
 
-	data, _ := json.Marshal(post)
-
-	req, err := http.NewRequest("POST", "/add", bytes.NewBufferString(string(data)))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Cookie", signinCookie)
-
+	resp, err := request(Request{"POST", "/add", form, signinCookie})
 	if err != nil {
-		fmt.Println(err)
+		t.Error(err)
 	}
-
-	resp := httptest.NewRecorder()
-
-	testRouter.ServeHTTP(resp, req)
 
 	assert.Equal(t, resp.Code, 200)
 
@@ -236,22 +213,14 @@ func TestGetArticle(t *testing.T) {
 		log.Println(err)
 	}
 
-	// ----------------------
-
 	articleID := res.ID //Lion's Head Caves Adventure
 
-	url := fmt.Sprintf("/api/postbyid/%d", articleID)
+	addr := fmt.Sprintf("/api/postbyid/%d", articleID)
 
-	req, err = http.NewRequest("GET", url, nil)
-	req.Header.Set("Cookie", signinCookie)
-
+	resp, err = request(Request{"GET", addr, nil, signinCookie})
 	if err != nil {
-		fmt.Println(err)
+		t.Error(err)
 	}
-
-	resp = httptest.NewRecorder()
-
-	testRouter.ServeHTTP(resp, req)
 	assert.Equal(t, resp.Code, 200)
 
 	type Data struct {
@@ -260,48 +229,32 @@ func TestGetArticle(t *testing.T) {
 	var p Data
 	err = json.NewDecoder(resp.Body).Decode(&p)
 	if err != nil {
-		fmt.Println(err)
-		return
+		t.Error(err)
 	}
 
 	assert.Equal(t, p.Data.Title, title)
 }
 
 func TestArticleNotFound(t *testing.T) {
-	testRouter := testRouter()
+	setup()
 
-	articleID := 123456 //Lion's Head Caves Adventure
-
-	url := fmt.Sprintf("/api/postbyid/%d", articleID)
-
-	req, error := http.NewRequest("GET", url, nil)
-	req.Header.Set("Cookie", signinCookie)
-
-	if error != nil {
-		fmt.Println(error)
+	articleID := 123456
+	addr := fmt.Sprintf("/api/postbyid/%d", articleID)
+	resp, err := request(Request{"GET", addr, nil, signinCookie})
+	if err != nil {
+		t.Error(err)
 	}
-
-	resp := httptest.NewRecorder()
-
-	testRouter.ServeHTTP(resp, req)
 	assert.Equal(t, resp.Code, 404)
 }
 
 func TestGetArticles(t *testing.T) {
-	testRouter := testRouter()
+	setup()
 
-	url := fmt.Sprintf("/api/posts")
-
-	req, err := http.NewRequest("GET", url, nil)
-	req.Header.Set("Cookie", signinCookie)
-
+	addr := fmt.Sprintf("/api/posts")
+	resp, err := request(Request{"GET", addr, nil, signinCookie})
 	if err != nil {
-		fmt.Println(err)
+		t.Error(err)
 	}
-
-	resp := httptest.NewRecorder()
-
-	testRouter.ServeHTTP(resp, req)
 	assert.Equal(t, resp.Code, 200)
 
 	type Data struct {
@@ -310,8 +263,7 @@ func TestGetArticles(t *testing.T) {
 
 	var p Data
 	if err = json.NewDecoder(resp.Body).Decode(&p); err != nil {
-		fmt.Println(err)
-		return
+		t.Error(err)
 	}
 
 	for _, v := range p.Data {
@@ -323,34 +275,24 @@ func TestGetArticles(t *testing.T) {
 }
 
 func TestAddArticle(t *testing.T) {
-	testRouter := testRouter()
+	setup()
 
-	var post db.Post
+	form := url.Values{}
+	form.Add("title", testArticleTitle)
+	form.Add("src", "src.co")
+	form.Add("description", "Test Description")
+	form.Add("posted_by", testUsername)
 
-	post.Title = testArticleTitle
-	post.Description = "Test description"
-	post.PostedBy = testUsername
-	post.Src = "source"
-
-	data, _ := json.Marshal(post)
-
-	req, error := http.NewRequest("POST", "/add", bytes.NewBufferString(string(data)))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Cookie", signinCookie)
-
-	if error != nil {
-		fmt.Println(error)
+	resp, err := request(Request{"POST", "/add", form, signinCookie})
+	if err != nil {
+		t.Error(err)
 	}
-
-	resp := httptest.NewRecorder()
-
-	testRouter.ServeHTTP(resp, req)
 
 	assert.Equal(t, resp.Code, 200)
 }
 
 func TestPostComment(t *testing.T) {
-	testRouter := testRouter()
+	setup()
 
 	var id string
 	error := db.QueryRowScan("select id from posts where title ='"+testArticleTitle+"' limit 1", &id)
@@ -358,20 +300,15 @@ func TestPostComment(t *testing.T) {
 		t.Error(error)
 	}
 
-	comment := &db.Comment{Text: "Comment", PostID: id, Sender: testUsername}
+	form := url.Values{}
+	form.Add("text", "Comment")
+	form.Add("post_id", id)
+	form.Add("sender", testUsername)
 
-	data, _ := json.Marshal(comment)
-
-	req, error := http.NewRequest("POST", "/comment", bytes.NewBufferString(string(data)))
-	req.Header.Set("Content-Type", "application/json")
-
-	if error != nil {
-		fmt.Println(error)
+	resp, err := request(Request{"POST", "/comment", form, ""})
+	if err != nil {
+		t.Error(err)
 	}
-
-	resp := httptest.NewRecorder()
-
-	testRouter.ServeHTTP(resp, req)
 
 	assert.Equal(t, resp.Code, 200)
 }
@@ -384,46 +321,29 @@ func TestDeletePostByID(t *testing.T) {
 		t.Error(error)
 	}
 
-	testRouter := testRouter()
+	setup()
 
 	form := url.Values{}
 	form.Add("id", id)
 	form.Add("user", testUsername)
 
-	req, error := http.NewRequest("POST", "/delete/"+id, strings.NewReader(form.Encode()))
-	req.PostForm = form
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Cookie", signinCookie)
-
-	if error != nil {
-		fmt.Println(error)
+	resp, err := request(Request{"POST", "/delete/" + id, form, signinCookie})
+	if err != nil {
+		t.Error(err)
 	}
-
-	resp := httptest.NewRecorder()
-
-	testRouter.ServeHTTP(resp, req)
 	assert.Equal(t, resp.Code, 200)
 }
 
 func TestCreateInvalidArticle(t *testing.T) {
-	testRouter := testRouter()
+	setup()
 
-	var post db.Post
+	form := url.Values{}
+	form.Add("title", testArticleTitle)
 
-	post.Title = testArticleTitle
-
-	data, _ := json.Marshal(post)
-
-	req, error := http.NewRequest("POST", "/add", bytes.NewBufferString(string(data)))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Cookie", signinCookie)
-
-	if error != nil {
-		fmt.Println(error)
+	resp, err := request(Request{"POST", "/add", form, signinCookie})
+	if err != nil {
+		t.Error(err)
 	}
 
-	resp := httptest.NewRecorder()
-
-	testRouter.ServeHTTP(resp, req)
-	assert.Equal(t, resp.Code, 400) //406
+	assert.Equal(t, resp.Code, 400)
 }
