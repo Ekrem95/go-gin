@@ -20,8 +20,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var active bool
 var signinCookie string
-
 var testUsername = "test"
 var testPassword = "123456"
 var testArticleTitle = "Test article title"
@@ -31,11 +31,49 @@ type UserForm struct {
 	Password string `form:"password" json:"password"`
 }
 
-func testRouter() *gin.Engine {
-	os.Setenv("ENV", "TEST")
-	if err := db.TestSQLConnection(); err != nil {
-		log.Fatal(err)
+func clearDatabase() error {
+	var table string
+	var tables []string
+
+	rows, err := db.Query("SHOW TABLES")
+	if err != nil {
+		return err
 	}
+	defer rows.Close()
+
+	for rows.Next() {
+		if err = rows.Scan(&table); err != nil {
+			return err
+		}
+		tables = append(tables, table)
+	}
+	if err = rows.Err(); err != nil {
+		return err
+	}
+
+	for _, v := range tables {
+		if _, err = db.Exec("TRUNCATE TABLE " + v); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func setup() {
+	if !active {
+		os.Setenv("ENV", "TEST")
+		if err := db.TestSQLConnection(); err != nil {
+			log.Fatal(err)
+		}
+		if err := clearDatabase(); err != nil {
+			log.Fatal(err)
+		}
+		active = true
+	}
+}
+
+func testRouter() *gin.Engine {
+	setup()
 
 	return router.Default()
 }
@@ -59,13 +97,6 @@ func TestSignup(t *testing.T) {
 
 	testRouter.ServeHTTP(resp, req)
 	assert.Equal(t, resp.Code, 200)
-}
-
-func DeleteUser() {
-	_, err := db.Exec("delete from users where username=? limit 1", testUsername)
-	if err != nil {
-		log.Fatal(err)
-	}
 }
 
 func TestInvalidSignup(t *testing.T) {
@@ -345,15 +376,7 @@ func TestPostComment(t *testing.T) {
 	assert.Equal(t, resp.Code, 200)
 }
 
-func DeletePost() {
-	_, err := db.Exec("delete from posts where title=?", testArticleTitle)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
 func TestDeletePostByID(t *testing.T) {
-	defer DeletePost()
 	var id string
 	// var post Post
 	error := db.QueryRowScan("select id from posts where title ='"+testArticleTitle+" 'limit 1", &id)
@@ -383,7 +406,6 @@ func TestDeletePostByID(t *testing.T) {
 }
 
 func TestCreateInvalidArticle(t *testing.T) {
-	defer DeleteUser()
 	testRouter := testRouter()
 
 	var post db.Post

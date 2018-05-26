@@ -9,7 +9,7 @@ var errors = struct {
 	Unauthorized gin.H
 	Internal     gin.H
 }{
-	BadRequest:   gin.H{"error": "StatusInternalServerError"},
+	BadRequest:   gin.H{"error": "StatusBadRequest"},
 	Unauthorized: gin.H{"error": "StatusUnauthorized"},
 	Internal:     gin.H{"error": "StatusInternalServerError"},
 }
