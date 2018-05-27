@@ -13,7 +13,7 @@ func websocket() (*socketio.Server, error) {
 		return nil, err
 	}
 	server.On("connection", func(so socketio.Socket) {
-		log.Println("on connection")
+		log.Println("new client connected")
 
 		so.Join("chat")
 
@@ -22,7 +22,7 @@ func websocket() (*socketio.Server, error) {
 			db.RedisSaveMsg(msg)
 		})
 		so.On("disconnection", func() {
-			log.Println("on disconnect")
+			log.Println("client disconnected")
 		})
 	})
 	server.On("error", func(so socketio.Socket, err error) {

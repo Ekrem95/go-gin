@@ -72,10 +72,10 @@ func setup() {
 }
 
 type Request struct {
-	method    string
-	addr      string
-	form      url.Values
-	setCookie string
+	method       string
+	addr         string
+	form         url.Values
+	signinCookie string
 }
 
 func request(r Request) (*httptest.ResponseRecorder, error) {
@@ -86,8 +86,8 @@ func request(r Request) (*httptest.ResponseRecorder, error) {
 	req.PostForm = r.form
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	if r.setCookie != "" {
-		req.Header.Set("Cookie", signinCookie)
+	if r.signinCookie != "" {
+		req.Header.Set("Cookie", r.signinCookie)
 	}
 
 	resp := httptest.NewRecorder()
