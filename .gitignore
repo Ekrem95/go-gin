@@ -1,6 +1,5 @@
 node_modules
 *.env
-tmp/
 .tmp/
-bundle.js
-src/public
+uploads/
+public/
