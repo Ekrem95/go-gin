@@ -12,9 +12,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ekrem95/go-gin/router"
-
 	"github.com/ekrem95/go-gin/db"
+	"github.com/ekrem95/go-gin/router"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -61,7 +60,7 @@ func clearDatabase() error {
 func setup() {
 	if !active {
 		os.Setenv("ENV", "TEST")
-		if err := db.TestSQLConnection(); err != nil {
+		if err := db.CheckSQLConnection(); err != nil {
 			log.Fatal(err)
 		}
 		if err := clearDatabase(); err != nil {
@@ -159,13 +158,13 @@ func TestChangePassword(t *testing.T) {
 	form.Add("current", testPassword)
 	form.Add("newPassword", "newPassword")
 
-	req, error := http.NewRequest("POST", "/changepassword", strings.NewReader(form.Encode()))
+	req, err := http.NewRequest("POST", "/changepassword", strings.NewReader(form.Encode()))
 	req.PostForm = form
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Cookie", signinCookie)
 
-	if error != nil {
-		fmt.Println(error)
+	if err != nil {
+		t.Error(err)
 	}
 
 	resp := httptest.NewRecorder()
@@ -244,7 +243,7 @@ func TestArticleNotFound(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, resp.Code, 404)
+	assert.Equal(t, resp.Code, 400)
 }
 
 func TestGetArticles(t *testing.T) {

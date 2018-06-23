@@ -3,6 +3,7 @@ package router
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/ekrem95/go-gin/db"
 	"github.com/gin-gonic/contrib/sessions"
@@ -10,8 +11,7 @@ import (
 )
 
 const (
-	// UploadPath ...
-	UploadPath = "./app/uploads"
+	uploadPath = "./app/uploads"
 )
 
 // Default ...
@@ -19,17 +19,15 @@ func Default() *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 
+	if _, err := os.Stat(uploadPath); os.IsNotExist(err) {
+		os.Mkdir(uploadPath, 0700)
+	}
+
 	store, _ := sessions.NewRedisStore(10, "tcp", "localhost:6379", "", []byte("secret"))
 	r.Use(sessions.Sessions("session", store))
 	r.LoadHTMLGlob("./app/templates/*")
 	r.StaticFS("/src", http.Dir("./app/src"))
 	r.StaticFile("/favicon.ico", "./app/templates/favicon.ico")
-
-	// socketio
-	server, err := websocket()
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	r.GET("/", common)
 	r.GET("/signup", common)
@@ -60,8 +58,12 @@ func Default() *gin.Engine {
 	r.POST("/post_likes", postLikes)
 
 	// socketio
-	r.GET("/socket.io/", gin.WrapH(server))
-	r.POST("/socket.io/", gin.WrapH(server))
+	ws, err := websocket()
+	if err != nil {
+		log.Fatal(err)
+	}
+	r.GET("/socket.io/", gin.WrapH(ws))
+	r.POST("/socket.io/", gin.WrapH(ws))
 
 	return r
 }

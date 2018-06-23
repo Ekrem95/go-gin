@@ -42,18 +42,19 @@ func signup(c *gin.Context) {
 	username, password := c.PostForm("username"), c.PostForm("password")
 
 	if len(username) < 3 || len(password) < 6 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad Request"})
+		c.JSON(http.StatusBadRequest, errors.BadRequest)
 		return
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		panic(err)
+		c.JSON(http.StatusInternalServerError, errors.Internal)
+		return
 	}
 
 	var user db.User
 	if exists := user.Exists(username); exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Username already exists"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username already exists"})
 		return
 	}
 
@@ -72,12 +73,11 @@ func login(c *gin.Context) {
 	username, password := c.PostForm("username"), c.PostForm("password")
 
 	if len(username) < 3 || len(password) < 6 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad Request"})
+		c.JSON(http.StatusBadRequest, errors.BadRequest)
 		return
 	}
 
-	var databaseUsername string
-	var databasePassword string
+	var databaseUsername, databasePassword string
 
 	// Search the database for the username provided
 	// If it exists grab the password for validation
@@ -85,14 +85,14 @@ func login(c *gin.Context) {
 
 	// If not then redirect to the login page
 	if err := db.QueryRowScan(smt, &databaseUsername, &databasePassword); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"err": err})
+		c.JSON(http.StatusBadRequest, gin.H{"err": err})
 		return
 	}
 
 	// Validate the password
 	if err := bcrypt.CompareHashAndPassword(
 		[]byte(databasePassword), []byte(password)); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"err": "Passwords do not match"})
+		c.JSON(http.StatusBadRequest, gin.H{"err": "Passwords does not match"})
 		return
 	}
 
@@ -109,13 +109,13 @@ func addPost(c *gin.Context) {
 	title, src, description, by := c.PostForm("title"), c.PostForm("src"), c.PostForm("description"), c.PostForm("posted_by")
 
 	if len(title) < 1 || len(description) < 5 || len(src) < 5 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad Request"})
+		c.JSON(http.StatusBadRequest, errors.BadRequest)
 		return
 	}
 	res, err := db.Exec(
 		"INSERT INTO posts(title, description, src, posted_by) VALUES(?, ?, ?, ?)", title, description, src, by)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to add"})
+		c.JSON(http.StatusInternalServerError, errors.Internal)
 		return
 	}
 
@@ -127,14 +127,15 @@ func editPost(c *gin.Context) {
 	var post db.Post
 	decoder := json.NewDecoder(c.Request.Body)
 	if err := decoder.Decode(&post); err != nil {
-		panic(err)
+		c.JSON(http.StatusBadRequest, errors.BadRequest)
+		return
 	}
 	defer c.Request.Body.Close()
 
 	id := c.Param("id")
 
 	if _, err := db.Exec("update posts set title = (?), description = (?), src = (?) where id=?", post.Title, post.Description, post.Src, id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to edit."})
+		c.JSON(http.StatusInternalServerError, errors.Internal)
 		return
 	}
 
@@ -147,32 +148,34 @@ func getPosts(c *gin.Context) {
 
 	rows, err := db.Query("select id, title, src, description, likes from posts")
 	if err != nil {
-		panic(err)
+		c.JSON(http.StatusInternalServerError, errors.Internal)
+		return
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&post.ID, &post.Title, &post.Src, &post.Description, &post.Likes); err != nil {
-			panic(err)
+			c.JSON(http.StatusInternalServerError, errors.Internal)
+			return
 		}
-
 		posts = append(posts, post)
 	}
 	if err = rows.Err(); err != nil {
-		panic(err)
+		c.JSON(http.StatusInternalServerError, errors.Internal)
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"posts": posts})
 }
 
 func getPostByID(c *gin.Context) {
-	id := c.Param("id")
 	var post db.Post
+	id := c.Param("id")
 	err := db.QueryRowScan("select id, title, src, description, likes from posts where id = "+id, &post.ID, &post.Title, &post.Src, &post.Description, &post.Likes)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			c.JSON(http.StatusNotFound, gin.H{"post": nil})
+			c.JSON(http.StatusBadRequest, gin.H{"post": nil})
 			return
 		}
 		log.Println(err)
@@ -184,25 +187,27 @@ func getPostByID(c *gin.Context) {
 }
 
 func getPostsByUsername(c *gin.Context) {
-	name := c.Param("name")
 	var id, title string
+	name := c.Param("name")
 	posts := map[string]string{}
 
 	rows, err := db.Query("select id, title from posts where posted_by=?", name)
 	if err != nil {
-		panic(err)
+		c.JSON(http.StatusInternalServerError, errors.Internal)
+		return
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&id, &title); err != nil {
-			panic(err)
+			c.JSON(http.StatusInternalServerError, errors.Internal)
+			return
 		}
-
 		posts[id] = title
 	}
 	if err = rows.Err(); err != nil {
-		panic(err)
+		c.JSON(http.StatusInternalServerError, errors.Internal)
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"posts": posts})
@@ -226,19 +231,21 @@ func getCommentsByID(c *gin.Context) {
 
 	rows, err := db.Query("select text, sender, post_id, time from comments where post_id=?", id)
 	if err != nil {
-		panic(err)
+		c.JSON(http.StatusInternalServerError, errors.Internal)
+		return
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&comment.Text, &comment.Sender, &comment.PostID, &comment.Time); err != nil {
-			panic(err)
+			c.JSON(http.StatusInternalServerError, errors.Internal)
+			return
 		}
-
 		comments = append(comments, comment)
 	}
 	if err = rows.Err(); err != nil {
-		panic(err)
+		c.JSON(http.StatusInternalServerError, errors.Internal)
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"comments": comments})
@@ -247,13 +254,13 @@ func getCommentsByID(c *gin.Context) {
 func uploadFile(c *gin.Context) {
 	file, handler, err := c.Request.FormFile("photo")
 	if err != nil {
-		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, errors.BadRequest)
 		return
 	}
 	defer file.Close()
-	f, err := os.OpenFile(UploadPath+"/"+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
+	f, err := os.OpenFile(uploadPath+"/"+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
-		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, errors.Internal)
 		return
 	}
 	defer f.Close()
@@ -297,13 +304,14 @@ func changePassword(c *gin.Context) {
 
 	if err := bcrypt.CompareHashAndPassword(
 		[]byte(password), []byte(current)); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"err": "Passwords do not match"})
+		c.JSON(http.StatusBadRequest, gin.H{"err": "Passwords does not match"})
 		return
 	}
 
-	hashedPassword, error := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
-	if error != nil {
-		panic(error)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, errors.Internal)
+		return
 	}
 
 	if _, err := db.Exec("update users set password=(?) where username=(?)", hashedPassword, username); err != nil {
@@ -318,7 +326,8 @@ func postLikes(c *gin.Context) {
 	var like db.Like
 	decoder := json.NewDecoder(c.Request.Body)
 	if err := decoder.Decode(&like); err != nil {
-		panic(err)
+		c.JSON(http.StatusInternalServerError, errors.Internal)
+		return
 	}
 	defer c.Request.Body.Close()
 
@@ -351,28 +360,29 @@ func postLikes(c *gin.Context) {
 }
 
 func getLikes(c *gin.Context) {
-	id := c.Param("id")
-
 	var user string
 	var users []string
 
+	id := c.Param("id")
+
 	rows, err := db.Query("select user from post_likes where post_id=?", id)
 	if err != nil {
-		panic(err)
+		c.JSON(http.StatusInternalServerError, errors.Internal)
+		return
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&user); err != nil {
-			panic(err)
+			c.JSON(http.StatusInternalServerError, errors.Internal)
+			return
 		}
-
 		users = append(users, user)
 	}
 	if err = rows.Err(); err != nil {
-		panic(err)
+		c.JSON(http.StatusInternalServerError, errors.Internal)
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"users": users})
-
 }

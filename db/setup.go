@@ -39,7 +39,7 @@ var smts = []string{
 }
 
 // TestSQLConnection ...
-func TestSQLConnection() error {
+func CheckSQLConnection() error {
 	if os.Getenv("ENV") == "TEST" {
 		dsn = "root:pass@/go_gin_test"
 	} else {
