@@ -8,8 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// var db *sql.DB
-// var err error
 var dsn string
 
 func open() (*sql.DB, error) {
@@ -47,7 +45,6 @@ func Query(smt string, args ...interface{}) (*sql.Rows, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return rows, nil
 }
 
@@ -63,7 +60,6 @@ func QueryRowScan(smt string, dest ...interface{}) error {
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 

@@ -4,37 +4,37 @@ import "os"
 
 var smts = []string{
 	`
-	CREATE TABLE IF NOT EXISTS users (
-	id INT(11) NOT NULL AUTO_INCREMENT,
-	username varchar(255),
-	password varchar(255),
-	primary key (id) )
+	CREATE 	 	TABLE IF NOT EXISTS users (
+	id 	     	INT(11)  NOT NULL AUTO_INCREMENT,
+	username 	varchar(255),
+	password 	varchar(255),
+	primary  	key (id) )
 	`,
 	`
-	CREATE TABLE IF NOT EXISTS posts (
-	id INT(11) NOT NULL AUTO_INCREMENT,
-	title varchar(255),
-	src varchar(255),
+	CREATE 		TABLE IF NOT EXISTS posts (
+	id 			INT(11) NOT NULL AUTO_INCREMENT,
+	title 		varchar(255),
+	src 		varchar(255),
 	description varchar(255),
-	likes int(11) DEFAULT 0,
-	posted_by varchar(255),
-	primary key (id) )
+	likes 		int(11) DEFAULT 0,
+	posted_by 	varchar(255),
+	primary 	key (id) )
 	`,
 	`
-	CREATE TABLE IF NOT EXISTS comments (
-	id INT(11) NOT NULL AUTO_INCREMENT,
-	text varchar(255),
-	post_id varchar(11),
-	time INT(22),
-	sender varchar(255),
-	primary key (id) )
+	CREATE 		TABLE IF NOT EXISTS comments (
+	id 			INT(11)  NOT NULL 	AUTO_INCREMENT,
+	text 		varchar(255),
+	post_id 	varchar(11),
+	time 		INT(22),
+	sender 		varchar(255),
+	primary 	key (id) )
 	`,
 	`
-	CREATE TABLE IF NOT EXISTS post_likes (
-	id INT(11) NOT NULL AUTO_INCREMENT,
-	post_id varchar(11),
-	user varchar(11),
-	primary key (id) )
+	CREATE 		TABLE IF NOT EXISTS post_likes (
+	id 			INT(11)  NOT NULL 	AUTO_INCREMENT,
+	post_id 	varchar(11),
+	user 		varchar(11),
+	primary 	key (id) )
 	`,
 }
 
