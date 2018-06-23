@@ -1,4 +1,4 @@
-package main
+package router
 
 import (
 	"encoding/json"
@@ -13,12 +13,12 @@ import (
 	"testing"
 
 	"github.com/ekrem95/go-gin/db"
-	"github.com/ekrem95/go-gin/router"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
 )
 
 var active bool
-var testRouter = router.Default()
+var testRouter = Default()
 var signinCookie string
 var testUsername = "test"
 var testPassword = "123456"

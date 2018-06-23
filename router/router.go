@@ -23,11 +23,14 @@ func Default() *gin.Engine {
 		os.Mkdir(uploadPath, 0700)
 	}
 
+	gopath := os.Getenv("GOPATH")
+	public := gopath + "/src/github.com/ekrem95/go-gin/app"
+
 	store, _ := sessions.NewRedisStore(10, "tcp", "localhost:6379", "", []byte("secret"))
 	r.Use(sessions.Sessions("session", store))
-	r.LoadHTMLGlob("./app/templates/*")
-	r.StaticFS("/src", http.Dir("./app/src"))
-	r.StaticFile("/favicon.ico", "./app/templates/favicon.ico")
+	r.LoadHTMLGlob(public + "/templates/*")
+	r.StaticFS("/src", http.Dir(public+"/src"))
+	r.StaticFile("/favicon.ico", public+"/templates/favicon.ico")
 
 	r.GET("/", common)
 	r.GET("/signup", common)

@@ -61,10 +61,13 @@ export default class Details extends Component {
 
                                     const pac = { text, post_id, sender };
 
-                                    fetch('/comment', {
-                                        method: 'post',
-                                        body: JSON.stringify(pac)
-                                    })
+                                    const body = new FormData();
+                                    body.append('text', text);
+                                    body.append('post_id', post_id);
+                                    body.append('sender', sender);
+
+
+                                    fetch('/comment', { method: 'post', body })
                                         .then(res => res.json())
                                         .then(res => console.log(res));
 
