@@ -27,9 +27,7 @@ export default class MyPosts extends Component {
             .then(res => {
                 let posts = [];
 
-                Object.keys(res.p).map(e => {
-                    posts.push({ id: e, title: res.p[e] });
-                });
+                Object.keys(res.posts).map(i => posts.push({ id: i, title: res.posts[i] }));
 
                 this.setState({ posts });
             })
@@ -50,9 +48,7 @@ export default class MyPosts extends Component {
                                 <div className='buttons'>
                                     <button
                                         onClick={() => {
-                                            this.props.history.push(
-                                                '/edit/' + p.id
-                                            );
+                                            this.props.history.push('/edit/' + p.id);
                                         }}
                                         type='button'
                                     >
@@ -61,8 +57,7 @@ export default class MyPosts extends Component {
                                     <button
                                         onClick={() => {
                                             const id = p.id;
-                                            const user = store.getState().user
-                                                .user;
+                                            const user = store.getState().user.user;
 
                                             const pac = { id, user };
                                             this.setState({ pac });
@@ -95,9 +90,9 @@ export default class MyPosts extends Component {
 
                                 fetch(
                                     '/delete/' +
-                                        this.props.location.pathname
-                                            .split('/')
-                                            .pop(),
+                                    this.props.location.pathname
+                                        .split('/')
+                                        .pop(),
                                     {
                                         method: 'post',
                                         credentials: 'same-origin',
@@ -108,8 +103,7 @@ export default class MyPosts extends Component {
                                     .then(res => {
                                         if (res.deleted === true) {
                                             const posts = this.state.posts.filter(
-                                                pos =>
-                                                    pos.id !== this.state.pac.id
+                                                pos => pos.id !== this.state.pac.id
                                             );
                                             this.setState({ posts });
                                         } else {

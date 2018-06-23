@@ -39,8 +39,7 @@ func getUser(c *gin.Context) {
 }
 
 func signup(c *gin.Context) {
-	username := c.PostForm("username")
-	password := c.PostForm("password")
+	username, password := c.PostForm("username"), c.PostForm("password")
 
 	if len(username) < 3 || len(password) < 6 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad Request"})
@@ -70,8 +69,7 @@ func signup(c *gin.Context) {
 }
 
 func login(c *gin.Context) {
-	username := c.PostForm("username")
-	password := c.PostForm("password")
+	username, password := c.PostForm("username"), c.PostForm("password")
 
 	if len(username) < 3 || len(password) < 6 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad Request"})
@@ -108,10 +106,7 @@ func logout(c *gin.Context) {
 }
 
 func addPost(c *gin.Context) {
-	title := c.PostForm("title")
-	src := c.PostForm("src")
-	description := c.PostForm("description")
-	by := c.PostForm("posted_by")
+	title, src, description, by := c.PostForm("title"), c.PostForm("src"), c.PostForm("description"), c.PostForm("posted_by")
 
 	if len(title) < 1 || len(description) < 5 || len(src) < 5 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad Request"})
@@ -214,9 +209,7 @@ func getPostsByUsername(c *gin.Context) {
 }
 
 func postComment(c *gin.Context) {
-	text := c.PostForm("text")
-	postID := c.PostForm("post_id")
-	sender := c.PostForm("sender")
+	text, postID, sender := c.PostForm("text"), c.PostForm("post_id"), c.PostForm("sender")
 	time := time.Now().Unix()
 
 	if _, err := db.Exec("INSERT INTO comments(text, sender, post_id, time) VALUES(?, ?, ?, ?)", text, sender, postID, time); err != nil {
@@ -258,7 +251,7 @@ func uploadFile(c *gin.Context) {
 		return
 	}
 	defer file.Close()
-	f, err := os.OpenFile("./photos/"+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
+	f, err := os.OpenFile(UploadPath+"/"+handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -268,8 +261,7 @@ func uploadFile(c *gin.Context) {
 }
 
 func deletePostByID(c *gin.Context) {
-	postID := c.PostForm("id")
-	user := c.PostForm("user")
+	postID, user := c.PostForm("id"), c.PostForm("user")
 	sessionUser := sessions.Default(c).Get("user")
 
 	if user != sessionUser {
@@ -286,8 +278,7 @@ func deletePostByID(c *gin.Context) {
 }
 
 func changePassword(c *gin.Context) {
-	current := c.PostForm("current")
-	newPassword := c.PostForm("newPassword")
+	current, newPassword := c.PostForm("current"), c.PostForm("newPassword")
 	username := sessions.Default(c).Get("user")
 
 	if username == nil || len(current) < 6 || len(newPassword) < 6 {

@@ -8,15 +8,13 @@ export default class Add extends Component {
     }
 
     add() {
-        const title = this.refs.title.value;
-        const description = this.refs.desc.value;
-        const src = this.refs.src.value;
-        const postedBy = store.getState().user.user;
+        const body = new FormData();
+        body.append('title', this.refs.title.value);
+        body.append('description', this.refs.desc.value);
+        body.append('src', this.refs.src.value);
+        body.append('posted_by', store.getState().user.user);
 
-        fetch('/add', {
-            method: 'post',
-            body: JSON.stringify({ title, description, src, postedBy })
-        })
+        fetch('/add', { method: 'post', body })
             .then(res => res.json())
             .then(res => {
                 if (res.id) this.props.history.push('/');
@@ -32,9 +30,7 @@ export default class Add extends Component {
                     <input ref='desc' type='text' placeholder='Description' />
                     <input ref='src' type='text' placeholder='Image Source' />
                     <button
-                        onClick={() => {
-                            this.add();
-                        }}
+                        onClick={() => this.add()}
                         type='button'
                     >
                         Add

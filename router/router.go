@@ -9,6 +9,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	// UploadPath ...
+	UploadPath = "./app/uploads"
+)
+
 // Default ...
 func Default() *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
