@@ -3,7 +3,7 @@ services:
   redis:
     container_name: redis.dev
     image: redis:latest
-    restart: on-failure
+    restart: always
     ports:
       - "6379:6379"
     volumes:
@@ -11,7 +11,7 @@ services:
   database:
     container_name: mariadb.dev
     image: mariadb:latest
-    restart: on-failure
+    restart: always
     ports:
       - "3306:3306"
     volumes:
