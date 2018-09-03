@@ -26,7 +26,7 @@ func Default() *gin.Engine {
 	gopath := os.Getenv("GOPATH")
 	public := gopath + "/src/github.com/ekrem95/go-gin/app"
 
-	store, _ := sessions.NewRedisStore(10, "tcp", "localhost:6379", "", []byte("secret"))
+	store, _ := sessions.NewRedisStore(10, "tcp", db.RedisAddress, "", []byte("secret"))
 	r.Use(sessions.Sessions("session", store))
 	r.LoadHTMLGlob(public + "/templates/*")
 	r.StaticFS("/src", http.Dir(public+"/src"))

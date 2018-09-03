@@ -3,12 +3,25 @@ package db
 import (
 	"database/sql"
 	"encoding/json"
+	"os"
 
 	"github.com/garyburd/redigo/redis"
 	"github.com/gin-gonic/gin"
 )
 
 var dsn string
+
+// RedisAddress ...
+var RedisAddress string
+
+func init() {
+	redis := os.Getenv("REDIS_ADDRESS")
+	if redis != "" {
+		RedisAddress = redis
+	} else {
+		RedisAddress = "localhost:6379"
+	}
+}
 
 func open() (*sql.DB, error) {
 	db, err := sql.Open("mysql", dsn)
@@ -65,12 +78,12 @@ func QueryRowScan(smt string, dest ...interface{}) error {
 
 // RedisGetMsgs func
 func RedisGetMsgs(c *gin.Context) {
-	conn, err := redis.Dial("tcp", ":6379")
+	conn, err := redis.Dial("tcp", RedisAddress)
 	if err != nil {
 		panic(err.Error())
 	}
 	defer conn.Close()
-	// Grabs the entire users list into an []string named users
+	// Grabs the entire messages list into an []string named messages
 	messages, _ := redis.Strings(conn.Do("LRANGE", "messages", 0, -1))
 
 	c.JSON(200, gin.H{"messages": messages})
@@ -78,13 +91,12 @@ func RedisGetMsgs(c *gin.Context) {
 
 // RedisSaveMsg func
 func RedisSaveMsg(msg *Message) {
-	conn, err := redis.Dial("tcp", ":6379")
+	conn, err := redis.Dial("tcp", RedisAddress)
 	if err != nil {
 		panic(err.Error())
 	}
 	defer conn.Close()
 
-	// Send Redis a ping command and wait for a pong
 	encoded, _ := json.Marshal(msg)
 
 	conn.Do("LPUSH", "messages", encoded)

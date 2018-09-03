@@ -38,9 +38,12 @@ var smts = []string{
 	`,
 }
 
-// CheckSQLConnection ...
-func CheckSQLConnection() error {
-	if os.Getenv("ENV") == "TEST" {
+// Connect ...
+func Connect() error {
+	address := os.Getenv("DATABASE_ADDRESS")
+	if address != "" {
+		dsn = address
+	} else if os.Getenv("ENV") == "TEST" {
 		dsn = "root:pass@/go_gin_test"
 	} else {
 		dsn = "root:pass@/go_gin"

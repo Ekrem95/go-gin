@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	if err := db.CheckSQLConnection(); err != nil {
+	if err := db.Connect(); err != nil {
 		log.Fatal(err)
 	}
 

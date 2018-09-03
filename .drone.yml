@@ -1,24 +1,21 @@
 pipeline:
   build:
     image: golang:1.11
+    environment:
+      DATABASE_ADDRESS: "database:3306"
+      REDIS_ADDRESS: "redis:6379"
     commands:
       - go get -d -v ./...
       - go get github.com/stretchr/testify
       - go build
-      - go test ./...
+      - sleep 5
+      - go test -v ./...
 
 services:
   redis:
-    image: redis:latest
-    ports:
-      - "6379:6379"
-  mariadb:
-    image: mariadb:latest
-    ports:
-      - "3306:3306"
+    image: redis
+  database:
+    image: mariadb
     environment:
-      MYSQL_DATABASE: "go_gin_test"
-      MYSQL_USER: "root"
-      MYSQL_PASSWORD: "pass"
-      MYSQL_ROOT_PASSWORD: "pass"
+      MYSQL_DATABASE: "test"
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
