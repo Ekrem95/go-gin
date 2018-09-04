@@ -60,7 +60,7 @@ func clearDatabase() error {
 func setup() {
 	if !active {
 		os.Setenv("ENV", "TEST")
-		if err := db.CheckSQLConnection(); err != nil {
+		if err := db.Connect(); err != nil {
 			log.Fatal(err)
 		}
 		if err := clearDatabase(); err != nil {

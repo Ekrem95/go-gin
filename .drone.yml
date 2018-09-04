@@ -2,7 +2,7 @@ pipeline:
   build:
     image: golang:1.11
     environment:
-      DATABASE_ADDRESS: "database:3306"
+      DATABASE_ADDRESS: "root@tcp(database:3306)/test"
       REDIS_ADDRESS: "redis:6379"
     commands:
       - go get -d -v ./...
