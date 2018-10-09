@@ -23,7 +23,7 @@ Go to React app directory
 cd $GOPATH/src/github.com/ekrem95/go-gin/app
 ```
 
-Install dependincies and build the app
+Install dependencies and build the app
 ```
 yarn && yarn build
 ```
